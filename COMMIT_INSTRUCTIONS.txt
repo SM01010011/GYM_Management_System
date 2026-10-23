@@ -1,0 +1,17 @@
+WARRIOR FITNESS — SUPABASE STEP 1
+
+Files to add/replace:
+1. package.json
+2. src/lib/supabase.ts
+3. .env.example
+
+Important:
+- Do NOT commit any real .env file or Supabase secret/service-role key.
+- This project currently contains bun.lock. Because package.json is being changed but Bun is not available in the current workflow, do NOT blindly commit a mismatched bun.lock.
+- For this step, remove bun.lock from the repository before committing package.json, so Vercel can install from package.json using npm.
+- We will add a proper lockfile later once the dependency migration is stable.
+
+GitHub commit message:
+feat: add Supabase client foundation
+
+After committing, wait for Vercel to deploy. Do not edit AuthContext.tsx yet.
