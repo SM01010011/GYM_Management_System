@@ -1,0 +1,170 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Authenticated user profile in the gym system",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 120, "format": "email" },
+        "phone": { "type": "string", "maxLength": 30 },
+        "role": { "type": "string", "enum": ["OWNER", "STAFF", "CUSTOMER"] },
+        "avatarUrl": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role", "createdAt"]
+    },
+    "Member": {
+      "title": "Member",
+      "description": "Physical gym member profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "memberCode": { "type": "string", "maxLength": 50 },
+        "name": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 120, "format": "email" },
+        "dateOfBirth": { "type": "string", "maxLength": 20 },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+        "address": { "type": "string", "maxLength": 250 },
+        "emergencyContact": { "type": "string", "maxLength": 100 },
+        "emergencyRelation": { "type": "string", "maxLength": 50 },
+        "profilePhoto": { "type": "string", "maxLength": 500 },
+        "joinDate": { "type": "string", "maxLength": 20 },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "currentMembershipId": { "type": "string", "maxLength": 128 },
+        "assignedCoach": { "type": "string", "maxLength": 100 },
+        "lockerNumber": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "memberCode", "name", "phone", "email", "status", "createdAt"]
+    },
+    "MembershipPlan": {
+      "title": "MembershipPlan",
+      "description": "Gym membership tier definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 300 },
+        "durationDays": { "type": "number" },
+        "price": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "durationDays", "price", "isActive", "createdAt"]
+    },
+    "Membership": {
+      "title": "Membership",
+      "description": "Active, expiring, or expired membership assigned to a member",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "memberId": { "type": "string", "maxLength": 128 },
+        "memberName": { "type": "string", "maxLength": 100 },
+        "memberCode": { "type": "string", "maxLength": 50 },
+        "planId": { "type": "string", "maxLength": 128 },
+        "planName": { "type": "string", "maxLength": 100 },
+        "startDate": { "type": "string", "maxLength": 20 },
+        "expiryDate": { "type": "string", "maxLength": 20 },
+        "price": { "type": "number" },
+        "status": { "type": "string", "enum": ["ACTIVE", "EXPIRING_SOON", "EXPIRED", "CANCELLED"] },
+        "createdBy": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "memberId", "planId", "planName", "startDate", "expiryDate", "price", "status", "createdAt"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Financial ledger record for membership or service fee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "memberId": { "type": "string", "maxLength": 128 },
+        "memberName": { "type": "string", "maxLength": 100 },
+        "membershipId": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "paymentDate": { "type": "string", "maxLength": 20 },
+        "paymentMethod": { "type": "string", "enum": ["CASH", "UPI", "CARD", "BANK_TRANSFER"] },
+        "transactionReference": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["PAID", "PENDING", "FAILED", "REFUNDED"] },
+        "recordedBy": { "type": "string", "maxLength": 100 },
+        "notes": { "type": "string", "maxLength": 300 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "memberId", "amount", "paymentDate", "paymentMethod", "status", "recordedBy", "createdAt"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Check-in and check-out physical gate record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "memberId": { "type": "string", "maxLength": 128 },
+        "memberName": { "type": "string", "maxLength": 100 },
+        "memberCode": { "type": "string", "maxLength": 50 },
+        "checkIn": { "type": "string" },
+        "checkOut": { "type": "string" },
+        "markedBy": { "type": "string", "maxLength": 100 },
+        "gate": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["CHECKED_IN", "CHECKED_OUT"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "memberId", "checkIn", "markedBy", "gate", "status", "createdAt"]
+    },
+    "RenewalRequest": {
+      "title": "RenewalRequest",
+      "description": "Member renewal request awaiting staff or owner approval",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "memberId": { "type": "string", "maxLength": 128 },
+        "memberName": { "type": "string", "maxLength": 100 },
+        "membershipId": { "type": "string", "maxLength": 128 },
+        "requestedPlanId": { "type": "string", "maxLength": 128 },
+        "requestedPlanName": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] },
+        "requestedAt": { "type": "string" },
+        "processedAt": { "type": "string" },
+        "processedBy": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["id", "memberId", "requestedPlanId", "status", "requestedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user identities and roles"
+    },
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "Collection of gym member records"
+    },
+    "/membershipPlans/{planId}": {
+      "schema": "MembershipPlan",
+      "description": "Gym membership tier offerings"
+    },
+    "/memberships/{membershipId}": {
+      "schema": "Membership",
+      "description": "Assigned active and past memberships"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Recorded gym payments"
+    },
+    "/attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Turnstile and desk check-ins"
+    },
+    "/renewalRequests/{requestId}": {
+      "schema": "RenewalRequest",
+      "description": "Customer membership renewal requests"
+    }
+  }
+}

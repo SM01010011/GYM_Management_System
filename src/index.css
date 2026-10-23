@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --primary: #bc0100;
+    --primary-container: #dc2626;
+    --secondary: #991b1b;
+    --surface: #f8fafc;
+    --surface-low: #ffffff;
+    --surface-lowest: #ffffff;
+    --surface-container: #f1f5f9;
+    --surface-high: #e2e8f0;
+    --on-surface: #0f172a;
+    --on-surface-variant: #475569;
+    --outline: #94a3b8;
+    --outline-variant: #e2e8f0;
+    --emerald-status: #059669;
+    --amber-status: #d97706;
+    --rose-status: #dc2626;
+  }
+
+  .dark {
+    --primary: #ff5540;
+    --primary-container: #bc0100;
+    --secondary: #ffb4a8;
+    --surface: #1e1110;
+    --surface-low: #180d0c;
+    --surface-lowest: #140b0a;
+    --surface-container: #281715;
+    --surface-high: #341e1c;
+    --on-surface: #fceae7;
+    --on-surface-variant: #debdb8;
+    --outline: #775651;
+    --outline-variant: #4a3431;
+    --emerald-status: #34d399;
+    --amber-status: #fbbf24;
+    --rose-status: #f87171;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-headline {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Crisp, Modern Light Theme SaaS Color Normalization */
+html:not(.dark) .bg-\[\#fff8f6\] { background-color: #f8fafc !important; }
+html:not(.dark) .bg-\[\#fff0ee\] { background-color: #ffffff !important; }
+html:not(.dark) .bg-\[\#ffe9e6\] { background-color: #fee2e2 !important; }
+html:not(.dark) .text-\[\#2b1613\] { color: #0f172a !important; }
+html:not(.dark) .text-\[\#603e39\] { color: #475569 !important; }
+html:not(.dark) .border-\[\#ebbbb4\]\/40 { border-color: #e2e8f0 !important; }
+html:not(.dark) .border-\[\#ebbbb4\]\/50 { border-color: #e2e8f0 !important; }
+html:not(.dark) .border-\[\#ebbbb4\]\/60 { border-color: #cbd5e1 !important; }
+html:not(.dark) .border-\[\#ebbbb4\] { border-color: #e2e8f0 !important; }
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  vertical-align: middle;
+}
+
+/* Card Holographic Aesthetic & Micro-animations */
+.holographic-card {
+  background: linear-gradient(135deg, #180907 0%, #2b1613 50%, #421008 100%);
+  position: relative;
+  overflow: hidden;
+}
+.holographic-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(254, 0, 0, 0.22) 0%, rgba(0, 113, 232, 0.12) 35%, transparent 70%);
+  pointer-events: none;
+}
+.holographic-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.08) 50%, transparent 60%);
+  animation: scanShine 6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes scanShine {
+  0% { transform: translateX(-100%); }
+  30%, 100% { transform: translateX(100%); }
+}
+
+.status-pulse {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+}
+
+@keyframes scan-laser {
+  0% { top: 0%; opacity: 0.8; }
+  50% { top: 95%; opacity: 1; }
+  100% { top: 0%; opacity: 0.8; }
+}
+
+.laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #eb0000, #ff5540, transparent);
+  box-shadow: 0 0 10px #eb0000;
+  animation: scan-laser 2.4s ease-in-out infinite;
+}
+
+.qr-pattern {
+  background-image: 
+    linear-gradient(45deg, #000 25%, transparent 25%), 
+    linear-gradient(-45deg, #000 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #000 75%), 
+    linear-gradient(-45deg, transparent 75%, #000 75%);
+  background-size: 8px 8px;
+}
+
+.athletic-glow:hover {
+  box-shadow: 0 0 24px -2px rgba(235, 0, 0, 0.35);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(149, 109, 103, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(188, 1, 0, 0.5);
+}

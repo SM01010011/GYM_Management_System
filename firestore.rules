@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isOwner() {
+      return isSignedIn() && (
+        getUserData().role == 'OWNER' ||
+        request.auth.token.email == 'marcus.vance@warrior.io' ||
+        request.auth.token.email == 'swaritmathur00@gmail.com'
+      );
+    }
+
+    function isStaff() {
+      return isSignedIn() && (
+        isOwner() ||
+        getUserData().role == 'STAFF'
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // Users Collection: Users can read their own profile, Owners/Staff can read user lists
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isStaff());
+      allow list: if isStaff();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (
+        isOwner() ||
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
+      );
+      allow delete: if isOwner();
+    }
+
+    // Members Collection: Customers can only read their own linked member record
+    match /members/{memberId} {
+      allow get: if isStaff() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list: if isStaff();
+      allow create, update: if isStaff();
+      allow delete: if isOwner();
+    }
+
+    // Membership Plans: Publicly readable for enrollment, manageable by Owner
+    match /membershipPlans/{planId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // Memberships: Customers can read only their own; Staff/Owner can assign and renew
+    match /memberships/{membershipId} {
+      allow get: if isStaff() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      allow list: if isStaff();
+      allow create, update: if isStaff();
+      allow delete: if isOwner();
+    }
+
+    // Payments: Staff and Owner can record and view; Customers can only view their own
+    match /payments/{paymentId} {
+      allow get: if isStaff() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      allow list: if isStaff();
+      allow create: if isStaff();
+      allow update, delete: if isOwner();
+    }
+
+    // Attendance: Staff/Owner can view and mark; Customers can read their own
+    match /attendance/{attendanceId} {
+      allow get: if isStaff() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      allow list: if isStaff();
+      allow create, update: if isStaff();
+      allow delete: if isOwner();
+    }
+
+    // Membership History: Staff and Owner can read & write; Customer can view their own
+    match /membershipHistory/{historyId} {
+      allow get: if isStaff() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      allow list: if isStaff();
+      allow create: if isStaff();
+      allow update, delete: if isOwner();
+    }
+
+    // Staff Permissions: Only Owner can view and configure
+    match /staffPermissions/{staffId} {
+      allow read: if isStaff();
+      allow write: if isOwner();
+    }
+
+    // Activity Logs: Read-only for Owner
+    match /activityLogs/{logId} {
+      allow read: if isOwner();
+      allow create: if isStaff();
+      allow update, delete: if false;
+    }
+
+    // Renewal Requests: Customers can create their own; Staff/Owner can process
+    match /renewalRequests/{requestId} {
+      allow get: if isStaff() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      allow list: if isStaff();
+      allow create: if isSignedIn();
+      allow update: if isStaff();
+      allow delete: if isOwner();
+    }
+
+    // Notifications: Users can read and update their own notifications
+    match /notifications/{notifId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userId == 'ALL');
+      allow list: if isSignedIn();
+      allow create: if isStaff();
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow delete: if isStaff();
+    }
+
+    // Gym Settings: Publicly readable settings, manageable by Owner only
+    match /gymSettings/{settingId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+  }
+}

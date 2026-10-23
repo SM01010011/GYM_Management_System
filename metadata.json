@@ -1,0 +1,6 @@
+{
+  "name": "Warrior Fitness - Gym Membership Management System",
+  "description": "Full-stack enterprise Gym Membership Management System with role-based access for Owners, Staff, and Customers, automatic membership expiry engine, digital QR turnstile passes, payments, attendance tracking, renewal workflows, and real-time reports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

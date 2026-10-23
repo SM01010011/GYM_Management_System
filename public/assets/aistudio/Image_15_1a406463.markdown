@@ -1,0 +1,237 @@
+---
+name: Kinetic Dark
+colors:
+  surface: '#fff8f6'
+  surface-dim: '#f8d1cb'
+  surface-bright: '#fff8f6'
+  surface-container-lowest: '#ffffff'
+  surface-container-low: '#fff0ee'
+  surface-container: '#ffe9e6'
+  surface-container-high: '#ffe2dd'
+  surface-container-highest: '#ffdad4'
+  on-surface: '#2b1613'
+  on-surface-variant: '#603e39'
+  inverse-surface: '#422a27'
+  inverse-on-surface: '#ffedea'
+  outline: '#956d67'
+  outline-variant: '#ebbbb4'
+  surface-tint: '#c00100'
+  primary: '#bc0100'
+  on-primary: '#ffffff'
+  primary-container: '#eb0000'
+  on-primary-container: '#fffbff'
+  inverse-primary: '#ffb4a8'
+  secondary: '#b72114'
+  on-secondary: '#ffffff'
+  secondary-container: '#ff5540'
+  on-secondary-container: '#5c0100'
+  tertiary: '#0059ba'
+  on-tertiary: '#ffffff'
+  tertiary-container: '#0071e8'
+  on-tertiary-container: '#fefcff'
+  error: '#ba1a1a'
+  on-error: '#ffffff'
+  error-container: '#ffdad6'
+  on-error-container: '#93000a'
+  primary-fixed: '#ffdad4'
+  primary-fixed-dim: '#ffb4a8'
+  on-primary-fixed: '#410000'
+  on-primary-fixed-variant: '#930100'
+  secondary-fixed: '#ffdad4'
+  secondary-fixed-dim: '#ffb4a8'
+  on-secondary-fixed: '#410100'
+  on-secondary-fixed-variant: '#930300'
+  tertiary-fixed: '#d7e2ff'
+  tertiary-fixed-dim: '#acc7ff'
+  on-tertiary-fixed: '#001a40'
+  on-tertiary-fixed-variant: '#004491'
+  background: '#fff8f6'
+  on-background: '#2b1613'
+  surface-variant: '#ffdad4'
+typography:
+  display-hero:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 3.5rem
+    fontWeight: '800'
+    lineHeight: '1.1'
+    letterSpacing: -0.03em
+  headline-lg:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 2.25rem
+    fontWeight: '700'
+    lineHeight: '1.2'
+    letterSpacing: -0.025em
+  headline-lg-mobile:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 1.75rem
+    fontWeight: '700'
+    lineHeight: '1.25'
+    letterSpacing: -0.02em
+  headline-md:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 1.5rem
+    fontWeight: '600'
+    lineHeight: '1.3'
+    letterSpacing: -0.02em
+  headline-sm:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 1.25rem
+    fontWeight: '600'
+    lineHeight: '1.4'
+    letterSpacing: -0.015em
+  body-lg:
+    fontFamily: Inter
+    fontSize: 1.125rem
+    fontWeight: '400'
+    lineHeight: '1.6'
+    letterSpacing: -0.01em
+  body-md:
+    fontFamily: Inter
+    fontSize: 1rem
+    fontWeight: '400'
+    lineHeight: '1.5'
+    letterSpacing: -0.005em
+  body-sm:
+    fontFamily: Inter
+    fontSize: 0.875rem
+    fontWeight: '400'
+    lineHeight: '1.5'
+    letterSpacing: '0'
+  label-lg:
+    fontFamily: Inter
+    fontSize: 0.875rem
+    fontWeight: '600'
+    lineHeight: '1.25'
+    letterSpacing: 0.01em
+  label-md:
+    fontFamily: Inter
+    fontSize: 0.75rem
+    fontWeight: '600'
+    lineHeight: '1.2'
+    letterSpacing: 0.02em
+  label-caps:
+    fontFamily: Inter
+    fontSize: 0.6875rem
+    fontWeight: '700'
+    lineHeight: '1.1'
+    letterSpacing: 0.08em
+  metric-num:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 2rem
+    fontWeight: '700'
+    lineHeight: '1.1'
+    letterSpacing: -0.03em
+rounded:
+  sm: 0.25rem
+  DEFAULT: 0.5rem
+  md: 0.75rem
+  lg: 1rem
+  xl: 1.5rem
+  full: 9999px
+spacing:
+  gutter: 1.5rem
+  gutter-mobile: 0.75rem
+  margin: 2rem
+  margin-mobile: 1rem
+  space-xs: 0.25rem
+  space-sm: 0.5rem
+  space-md: 1rem
+  space-lg: 1.5rem
+  space-xl: 2.5rem
+---
+
+## Brand & Style
+
+This design system embodies high-octane performance, precision, and technical refinement. Built for modern fitness studio owners, athletic clubs, and gym operators, the interface strikes a balance between hyper-focused operational utility and athletic motivation. 
+
+The aesthetic marries **Technical Minimalism** with **Subtle Cybernetic/Glassmorphism accents**:
+- **Atmosphere:** Clean, bright, immersive, and sleek. Light substrates and crisp containers prevent visual fatigue during intense floor shifts or late-night admin workflows.
+- **Energy:** High-voltage vitality driven by electric red, vibrant crimson, and laser blue accents, applied with strict restraint as functional indicators and motivational highlights rather than pervasive decoration.
+- **Tone:** Confident, decisive, high-precision, and athletic. Every element communicates reliability and swiftness.
+
+## Colors
+
+The palette operates on a calibrated luminance model designed explicitly for light-mode environments:
+
+### Core Hues
+- **Primary (`#FE0000` / Electric Red):** Indicates primary momentum, forward action, conversion buttons, active member status, and high-frequency success states.
+- **Secondary (`#DB3C2A` / Kinetic Crimson):** Used for attention-requiring elements, urgent alerts, expiring memberships, and intermediate thresholds.
+- **Tertiary (`#007bfc` / Electric Blue):** Reserved for secondary features, analytics, structural metadata, and multi-location switcher accents.
+- **Neutral Foundation (`#8F706B` / Warm Taupe Slate):** Deep background neutral base delivering contrast without the stark harshness of pitch black.
+
+### Surface System
+- **Canvas Base:** `#F8F9FA` (Clean Light)
+- **Surface Level 1 (Cards, Sidebars):** `#FFFFFF` (Pure White)
+- **Surface Level 2 (Floating Overlays, Modals, Inputs):** `#F1F3F5` (Elevated Light Slate)
+- **Surface Accent/Hover:** `#E9ECEF` with 40% alpha
+
+### Status & Semantic Tokens
+- **Active / Operational:** `#10B981` (Emerald) text over `rgba(16, 185, 129, 0.12)` fill with `rgba(16, 185, 129, 0.3)` border.
+- **Expiring / Cautionary:** `#F59E0B` (Amber) to `#DB3C2A` (Crimson) text over `rgba(219, 60, 42, 0.12)` fill.
+- **Expired / Critical:** `#F43F5E` (Rose) text over `rgba(244, 63, 94, 0.12)` fill with `rgba(244, 63, 94, 0.3)` border.
+- **Data Accents:** `#06B6D4` (Cyan) and `#8B5CF6` (Violet) strictly for multi-metric telemetry charts.
+
+## Typography
+
+Typography pairs the dynamic, geometric character of **Plus Jakarta Sans** for titles, display numbers, and key operational metrics with the neutral legibility of **Inter** for data grids, dense controls, and body copy.
+
+- **Numerics & Telemetry:** When rendering currency, counts, or clock timers, enable tabular figures (`font-variant-numeric: tabular-nums`) to prevent horizontal jitter during real-time dashboard updates.
+- **Hierarchical Contrast:** Category headers and micro-labels use `label-caps` styled in uppercase with intentional positive tracking (`letterSpacing: 0.08em`) to guarantee quick recognition on floor tablets.
+- **Line Heights:** Body line heights are set to generous proportions (1.5-1.6) to guarantee fast scanning on the move.
+
+## Layout & Spacing
+
+The interface employs a responsive 12-column fluid grid system pinned to an 8pt base layout rhythm:
+
+- **Desktop (>= 1280px):** 12-column layout with 24px (`1.5rem`) gutters and 32px (`2rem`) screen margins. Side navigation remains persistent (260px fixed width).
+- **Tablet (768px - 1279px):** 8-column layout with 16px gutters and 24px margins. Sidebar collapses to an icon dock (72px fixed width).
+- **Mobile (< 768px):** 4-column layout with 12px (`0.75rem`) gutters and 16px (`1rem`) margins. Navigation converts into a thumb-accessible fixed bottom bar and persistent floating top app bar.
+- **Card Clustering:** Use `space-md` (16px) internally for dense KPI cards and `space-lg` (24px) for master table containers and workflow panels.
+
+## Elevation & Depth
+
+Depth is established through translucent clean layers, fine structural outlines, and soft shadows rather than heavy muddy drop shadows:
+
+- **Substrate Level 0 (Base Canvas):** Solid `#F8F9FA`. Zero elevation.
+- **Substrate Level 1 (Cards & Data Sections):** Background `#FFFFFF` at 85% opacity with `backdrop-filter: blur(12px)`. Enclosed by a 1px inner border of `rgba(0, 0, 0, 0.08)`.
+- **Substrate Level 2 (Modals, Dropdowns & Drawers):** Background `#FFFFFF` at 95% opacity with `backdrop-filter: blur(20px)`, enclosed by `rgba(0, 0, 0, 0.14)` border and an ambient shadow: `0 20px 40px -15px rgba(0, 0, 0, 0.1)`.
+- **Active State Highlights (Accent Elevation):** Selected cards or high-priority CTA buttons trigger a localized ambient illumination: `0 0 24px -4px rgba(254, 0, 0, 0.25)`.
+
+## Shapes
+
+The geometric framework applies consistent curvature to soften the technical light foundation while preserving an agile, structured cadence:
+
+- **Standard Containers & Cards:** Rounded with `1rem` (`rounded-lg`) to create modern, touch-friendly containment.
+- **Interactive Controls (Inputs, Selectors, Regular Buttons):** Set at `0.5rem` (`rounded-md`) for precise tactile anchoring.
+- **Status Badges, Avatars & Capsule Filters:** Set to `9999px` (fully circular/pill) to contrast against rectilinear data layouts.
+- **Progress Meters & Activity Rings:** Rendered with softened, rounded terminal caps.
+
+## Components
+
+### Buttons
+- **Primary Action:** Solid `#FE0000` with `#FFFFFF` text (weight 700). Subtle glow on hover (`0 0 16px rgba(254, 0, 0, 0.4)`). Active state scales slightly down (98%).
+- **Secondary Action:** Transparent background, 1px border of `rgba(0, 0, 0, 0.18)`, `#1F2937` text. Hover transitions to `#E9ECEF` background.
+- **Ghost/Destructive:** Transparent base with `#F43F5E` text and soft hover fill `rgba(244, 63, 94, 0.1)`.
+
+### Status Badges
+Pill-shaped badges with uppercase `label-caps` text and an inline 6px glowing status dot:
+- **Active Member:** Green dot with pulsing halo, background `rgba(34, 197, 94, 0.12)`, text `#10B981`.
+- **Expiring Soon:** Crimson dot, background `rgba(219, 60, 42, 0.12)`, text `#DB3C2A`.
+- **Suspended / Expired:** Rose dot, background `rgba(244, 63, 94, 0.12)`, text `#F43F5E`.
+
+### Data Tables
+- **Header:** Sticky positioning, uppercase micro-typography (`label-caps`), subtle divider `1px solid rgba(0, 0, 0, 0.06)`, zero heavy background fill.
+- **Rows:** Alternating transparent and `rgba(0, 0, 0, 0.02)` states. Hover state applies `rgba(254, 0, 0, 0.04)` fill with a 2px left border accent in `#FE0000`.
+- **Cell Content:** Numeric alignment right; text left. Badges center-aligned within cell containers.
+
+### Form Inputs & Search Fields
+- Light slate fill (`#F1F3F5`) with 1px border `rgba(0, 0, 0, 0.12)`.
+- Focus state switches border to `#FE0000` accompanied by `0 0 0 1px #FE0000`. Placeholder text rendered in muted slate (`#64748B`).
+
+### Role & Branch Switcher
+Located in the primary header/sidebar:
+- A compact glassmorphic pill combining an avatar/icon, active role label (e.g., "Owner / Midtown Club"), and dual chevron.
+- Expanding presents an elevated card listing authorized branches and roles with direct checkmark indicators and an immediate visual role badge.
+
+### Metric / KPI Cards
+- Light glass surface (`#FFFFFF` / 85% opacity), top micro-label with metric name, large numeric display (`metric-num`), and bottom micro trend tag (e.g., "+14% vs last week" in electric red).

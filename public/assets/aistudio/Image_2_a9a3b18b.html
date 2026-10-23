@@ -1,0 +1,756 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title class="">Warrior Fitness - Member Portal</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Plus Jakarta Sans & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config Verbatim -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-container": "#0071e8",
+            "background": "#fff8f6",
+            "secondary": "#b72114",
+            "surface-container-high": "#ffe2dd",
+            "on-background": "#2b1613",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed-dim": "#acc7ff",
+            "surface-container": "#ffe9e6",
+            "error": "#ba1a1a",
+            "on-primary": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-surface": "#2b1613",
+            "on-secondary-fixed": "#410100",
+            "on-tertiary-fixed-variant": "#004491",
+            "primary-fixed-dim": "#ffb4a8",
+            "secondary-fixed-dim": "#ffb4a8",
+            "surface": "#fff8f6",
+            "inverse-on-surface": "#ffedea",
+            "inverse-primary": "#ffb4a8",
+            "on-secondary": "#ffffff",
+            "surface-tint": "#c00100",
+            "secondary-fixed": "#ffdad4",
+            "primary": "#bc0100",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "surface-container-highest": "#ffdad4",
+            "surface-variant": "#ffdad4",
+            "on-error": "#ffffff",
+            "surface-dim": "#f8d1cb",
+            "on-tertiary-container": "#fefcff",
+            "inverse-surface": "#422a27",
+            "tertiary-fixed": "#d7e2ff",
+            "on-primary-container": "#fffbff",
+            "surface-container-low": "#fff0ee",
+            "on-surface-variant": "#603e39",
+            "tertiary": "#0059ba",
+            "primary-container": "#eb0000",
+            "surface-bright": "#fff8f6",
+            "on-primary-fixed": "#410000",
+            "on-secondary-fixed-variant": "#930300",
+            "on-primary-fixed-variant": "#930100",
+            "outline": "#956d67",
+            "outline-variant": "#ebbbb4",
+            "secondary-container": "#ff5540",
+            "on-secondary-container": "#5c0100",
+            "on-tertiary-fixed": "#001a40",
+            "primary-fixed": "#ffdad4"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "gutter": "1.5rem",
+            "space-xl": "2.5rem",
+            "space-lg": "1.5rem",
+            "margin-mobile": "1rem",
+            "margin": "2rem",
+            "gutter-mobile": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-md": [
+              "Plus Jakarta Sans"
+            ],
+            "label-md": [
+              "Inter"
+            ],
+            "body-sm": [
+              "Inter"
+            ],
+            "headline-lg": [
+              "Plus Jakarta Sans"
+            ],
+            "label-lg": [
+              "Inter"
+            ],
+            "body-lg": [
+              "Inter"
+            ],
+            "display-hero": [
+              "Plus Jakarta Sans"
+            ],
+            "headline-sm": [
+              "Plus Jakarta Sans"
+            ],
+            "label-caps": [
+              "Inter"
+            ],
+            "body-md": [
+              "Inter"
+            ],
+            "metric-num": [
+              "Plus Jakarta Sans"
+            ],
+            "headline-lg-mobile": [
+              "Plus Jakarta Sans"
+            ]
+          },
+          "fontSize": {
+            "headline-md": [
+              "1.5rem",
+              {
+                "lineHeight": "1.3",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "600"
+              }
+            ],
+            "label-md": [
+              "0.75rem",
+              {
+                "lineHeight": "1.2",
+                "letterSpacing": "0.02em",
+                "fontWeight": "600"
+              }
+            ],
+            "body-sm": [
+              "0.875rem",
+              {
+                "lineHeight": "1.5",
+                "letterSpacing": "0",
+                "fontWeight": "400"
+              }
+            ],
+            "headline-lg": [
+              "2.25rem",
+              {
+                "lineHeight": "1.2",
+                "letterSpacing": "-0.025em",
+                "fontWeight": "700"
+              }
+            ],
+            "label-lg": [
+              "0.875rem",
+              {
+                "lineHeight": "1.25",
+                "letterSpacing": "0.01em",
+                "fontWeight": "600"
+              }
+            ],
+            "body-lg": [
+              "1.125rem",
+              {
+                "lineHeight": "1.6",
+                "letterSpacing": "-0.01em",
+                "fontWeight": "400"
+              }
+            ],
+            "display-hero": [
+              "3.5rem",
+              {
+                "lineHeight": "1.1",
+                "letterSpacing": "-0.03em",
+                "fontWeight": "800"
+              }
+            ],
+            "headline-sm": [
+              "1.25rem",
+              {
+                "lineHeight": "1.4",
+                "letterSpacing": "-0.015em",
+                "fontWeight": "600"
+              }
+            ],
+            "label-caps": [
+              "0.6875rem",
+              {
+                "lineHeight": "1.1",
+                "letterSpacing": "0.08em",
+                "fontWeight": "700"
+              }
+            ],
+            "body-md": [
+              "1rem",
+              {
+                "lineHeight": "1.5",
+                "letterSpacing": "-0.005em",
+                "fontWeight": "400"
+              }
+            ],
+            "metric-num": [
+              "2rem",
+              {
+                "lineHeight": "1.1",
+                "letterSpacing": "-0.03em",
+                "fontWeight": "700"
+              }
+            ],
+            "headline-lg-mobile": [
+              "1.75rem",
+              {
+                "lineHeight": "1.25",
+                "letterSpacing": "-0.02em",
+                "fontWeight": "700"
+              }
+            ]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    /* Card Holographic Aesthetic & Micro-animations */
+    .holographic-card {
+      background: linear-gradient(135deg, #180907 0%, #2b1613 50%, #421008 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .holographic-card::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(254, 0, 0, 0.18) 0%, rgba(0, 113, 232, 0.12) 35%, transparent 70%);
+      pointer-events: none;
+    }
+    .holographic-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.08) 50%, transparent 60%);
+      animation: scanShine 6s infinite ease-in-out;
+      pointer-events: none;
+    }
+    @keyframes scanShine {
+      0% { transform: translateX(-100%); }
+      30%, 100% { transform: translateX(100%); }
+    }
+    .status-pulse {
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+    }
+    .qr-pattern {
+      background-image: 
+        linear-gradient(45deg, #000 25%, transparent 25%), 
+        linear-gradient(-45deg, #000 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #000 75%), 
+        linear-gradient(-45deg, transparent 75%, #000 75%);
+      background-size: 8px 8px;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen pb-28 md:pb-12">
+<!-- TOP APP BAR (Shared Component Anchor) -->
+<header class="bg-surface-container-lowest/85 backdrop-blur-md dark:bg-inverse-surface/85 docked full-width top-0 sticky z-40 shadow-sm">
+<div class="flex justify-between items-center w-full px-4 h-16 max-w-7xl mx-auto">
+<!-- Member Identity Header Left -->
+<div class="flex items-center gap-3">
+<div class="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-primary to-tertiary flex-shrink-0">
+<img alt="Rahul Sharma" class="w-full h-full object-cover rounded-full bg-surface-container" data-alt="Photorealistic portrait of a young athletic South Asian male gym member in high performance athletic wear with soft gym lighting in the background, sharp modern focus, light aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6wcbihm_MRIXNYJxZQfzYTdoYihhhoa5VA_pPoOgv9t0sT7hmPkL7AtNgire5CJRBsvetoV0I9PGpSSaIzOy1STdrBl0sbrwdXhdtO0JbSFyMPZZsi9VElNW38nBH-Wep_l2r1aLGnuY_2Zt1n5zW8pBfdzaKUjmlpA-a8RZ_NSHtwpB9zXonRXB4cwOIwUnNqIQAyVQCHSFyKX26GAn8v6Jwa2d871VlTpRVZbo8IHbNDLHiQ4SB">
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white status-pulse"></span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="text-headline-sm font-headline-sm font-bold text-on-surface tracking-tight leading-none">Rahul Sharma</h1>
+<span class="bg-surface-container-high text-primary px-2 py-0.5 rounded-full text-label-caps font-label-caps">MEMBER</span>
+</div>
+<div class="flex items-center gap-2 text-label-md font-label-md text-on-surface-variant mt-0.5">
+<span class="font-medium text-primary">#M-1042</span>
+<span class="">•</span>
+<span class="flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px] text-tertiary">location_on</span>
+              Midtown Hub
+            </span>
+</div>
+</div>
+</div>
+<!-- Actions Right: Branch Badge & Sign Out / Notifications -->
+<div class="flex items-center gap-2">
+<button aria-label="Notifications" class="relative p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors duration-150">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant/50 hover:bg-surface-container text-error text-label-md font-label-md transition-all active:scale-98" title="Sign Out">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+<span class="hidden sm:inline">Sign Out</span>
+</button>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-6">
+<!-- BENTO ROW 1: Hero Membership Pass & Quick Access Overview -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- HERO DIGITAL MEMBERSHIP CARD (7 Columns on large) -->
+<section class="lg:col-span-7">
+<div class="holographic-card rounded-xl p-6 text-white shadow-xl border border-white/10 relative overflow-hidden flex flex-col justify-between min-h-[340px]">
+<!-- Top Row: Tier & Status Badge -->
+<div class="flex items-start justify-between relative z-10">
+<div>
+<div class="flex items-center gap-2">
+<span class="text-tertiary-fixed-dim text-label-caps font-label-caps tracking-widest uppercase">Warrior Athletic Club</span>
+<span class="material-symbols-outlined text-primary-fixed-dim text-[16px]">verified</span>
+</div>
+<h2 class="text-headline-md font-headline-md text-white mt-1">PREMIUM PASS (6 MONTHS)</h2>
+<p class="text-body-sm font-body-sm text-white/70">Single-Member Full Access</p>
+</div>
+<!-- Active Status Glow Pill -->
+<div class="flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 px-3 py-1 rounded-full text-label-caps font-label-caps">
+<span class="w-2 h-2 rounded-full bg-emerald-400 status-pulse"></span>
+              ACTIVE
+            </div>
+</div>
+<!-- Middle Content: Interactive QR Turnstile Pass + Member Credentials -->
+<div class="my-6 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center relative z-10 bg-black/30 backdrop-blur-md p-4 rounded-lg border border-white/10">
+<!-- QR Simulation Area -->
+<div class="flex flex-col items-center justify-center p-2.5 bg-white rounded-lg w-full max-w-[130px] mx-auto text-black">
+<div class="w-24 h-24 bg-white p-1 rounded flex flex-col items-center justify-center relative">
+<!-- Synthesized QR Pattern with Corner Targets -->
+<div class="w-full h-full relative qr-pattern rounded flex items-center justify-center">
+<div class="absolute -top-1 -left-1 w-6 h-6 border-4 border-black bg-white"></div>
+<div class="absolute -top-1 -right-1 w-6 h-6 border-4 border-black bg-white"></div>
+<div class="absolute -bottom-1 -left-1 w-6 h-6 border-4 border-black bg-white"></div>
+<div class="bg-primary text-white p-1 rounded shadow-md z-10 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">fitness_center</span>
+</div>
+</div>
+</div>
+<span class="text-[9px] font-mono font-bold tracking-widest text-neutral-800 mt-1">ENCRYPTED TOKEN: WRR-9942-RS</span>
+</div>
+<!-- Pass Progress Stats -->
+<div class="sm:col-span-2 space-y-3">
+<div class="flex justify-between items-baseline">
+<span class="text-white/70 text-label-md font-label-md">Membership Validity</span>
+<span class="text-secondary-fixed text-label-caps font-label-caps bg-secondary-container/40 px-2 py-0.5 rounded">
+                  22 Oct 2026 (In 3 days)
+                </span>
+</div>
+<!-- Linear Progress Bar: 177 of 180 Days -->
+<div>
+<div class="w-full bg-white/20 h-2.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-tertiary-container via-secondary-container to-primary-container h-full rounded-full transition-all duration-500" style="width: 98.3%;"></div>
+</div>
+<div class="flex justify-between items-center text-body-sm font-body-sm text-white/80 mt-1.5">
+<span class="font-medium">177 of 180 Days Completed</span>
+<span class="text-primary-fixed-dim font-bold">98%</span>
+</div>
+</div>
+<div class="flex items-center gap-2 text-white/60 text-label-md font-label-md pt-1">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim">sensors</span>
+<span class="">Ready for NFC &amp; Optical Turnstile Tap</span>
+</div>
+</div>
+</div>
+<!-- Bottom Row: Card Footer CTA -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 relative z-10 border-t border-white/10">
+<div class="text-left w-full sm:w-auto">
+<span class="text-white/50 text-[11px] block font-mono">ENCRYPTED TOKEN: WRR-9942-RS</span>
+</div>
+<button class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-primary hover:bg-secondary text-white font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/30 transition-all active:scale-98" onclick="document.getElementById('renewalModal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+              Request Instant Renewal
+            </button>
+</div>
+</div>
+</section>
+<!-- CUSTOMER QUICK ACTIONS GRID (5 Columns on large) -->
+<section class="lg:col-span-5 flex flex-col justify-between space-y-4">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-[20px]">bolt</span>
+            Quick Member Actions
+          </h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Instant self-service commands for your daily workout sessions.</p>
+</div>
+<div class="grid grid-cols-2 gap-3.5 flex-1">
+<!-- Action 1: QR Pass -->
+<button class="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary/50 shadow-sm hover:shadow-md transition-all text-left flex flex-col justify-between group active:scale-98" onclick="alert('Full Screen Pass active. Present this barcode to Turnstile Gate A/B.');">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">qr_code_2</span>
+</div>
+<div>
+<span class="block text-label-lg font-label-lg text-on-surface font-semibold group-hover:text-primary transition-colors">My QR Pass</span>
+<span class="text-label-caps font-label-caps text-on-surface-variant">Turnstile Ready</span>
+</div>
+</button>
+<!-- Action 2: Request Renewal -->
+<button class="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary/50 shadow-sm hover:shadow-md transition-all text-left flex flex-col justify-between group active:scale-98" onclick="document.getElementById('renewalModal').classList.remove('hidden')">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">autorenew</span>
+</div>
+<div>
+<span class="block text-label-lg font-label-lg text-on-surface font-semibold group-hover:text-primary transition-colors">Request Renewal</span>
+<span class="text-label-caps font-label-caps text-secondary font-bold">Expires in 3d</span>
+</div>
+</button>
+<!-- Action 3: Payment Receipts -->
+<button class="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary/50 shadow-sm hover:shadow-md transition-all text-left flex flex-col justify-between group active:scale-98" onclick="switchTab('invoicesTab')">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">receipt_long</span>
+</div>
+<div>
+<span class="block text-label-lg font-label-lg text-on-surface font-semibold group-hover:text-tertiary transition-colors">Payment Receipts</span>
+<span class="text-label-caps font-label-caps text-emerald-600 font-bold">₹3,500 Paid</span>
+</div>
+</button>
+<!-- Action 4: Locker Pin & Key -->
+<div class="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm text-left flex flex-col justify-between">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-[24px]">lock</span>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="block text-label-lg font-label-lg text-on-surface font-semibold">Locker #42</span>
+<span class="material-symbols-outlined text-emerald-600 text-[18px]">key</span>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface-variant">Locker Area B (Midtown)</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- BENTO ROW 2: DETAILED PROFILE & HISTORY TABS SECTION -->
+<section class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-sm overflow-hidden">
+<!-- Tabs Navigation Header -->
+<div class="flex border-b border-outline-variant/30 px-4 pt-3 gap-2 overflow-x-auto bg-surface-container-low/40">
+<button class="tab-button flex items-center gap-2 px-4 py-3 border-b-2 border-primary text-primary font-label-lg text-label-lg font-semibold transition-all whitespace-nowrap" id="tabBtn-details" onclick="switchTab('detailsTab')">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+          My Membership Details
+        </button>
+<button class="tab-button flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-all whitespace-nowrap" id="tabBtn-attendance" onclick="switchTab('attendanceTab')">
+<span class="material-symbols-outlined text-[18px]">sensor_door</span>
+          Recent Check-in Attendance
+        </button>
+<button class="tab-button flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-all whitespace-nowrap" id="tabBtn-invoices" onclick="switchTab('invoicesTab')">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+          Invoices &amp; Receipts
+        </button>
+</div>
+<!-- Tab 1: Membership Details -->
+<div class="tab-pane p-6 space-y-6" id="detailsTab">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Dates Card -->
+<div class="p-4 rounded-lg bg-surface border border-outline-variant/20 space-y-3">
+<span class="text-label-caps font-label-caps text-on-surface-variant block uppercase tracking-wider">Plan Timeline</span>
+<div class="flex items-center justify-between">
+<div>
+<span class="text-[12px] text-on-surface-variant block">Start Date</span>
+<span class="text-body-md font-body-md font-bold text-on-surface">24 Apr 2026</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant">arrow_forward</span>
+<div>
+<span class="text-[12px] text-on-surface-variant block">Expiry Date</span>
+<span class="text-body-md font-body-md font-bold text-error">22 Oct 2026</span>
+</div>
+</div>
+<div class="pt-2 border-t border-outline-variant/20 flex items-center gap-1.5 text-label-md font-label-md text-secondary">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="">3 days remaining until renewal</span>
+</div>
+</div>
+<!-- Personal Trainer Card -->
+<div class="p-4 rounded-lg bg-surface border border-outline-variant/20 space-y-3">
+<span class="text-label-caps font-label-caps text-on-surface-variant block uppercase tracking-wider">Personal Coach Assigned</span>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold">
+                VR
+              </div>
+<div>
+<h4 class="text-body-md font-body-md font-bold text-on-surface">Vikram Rajput</h4>
+<p class="text-label-md font-label-md text-on-surface-variant">Tier-3 Strength &amp; Conditioning</p>
+</div>
+</div>
+<div class="pt-2 border-t border-outline-variant/20 flex items-center justify-between">
+<span class="text-label-md font-label-md text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">2 Sessions / Week</span>
+<button class="text-tertiary text-label-md font-label-md hover:underline font-semibold flex items-center gap-1">
+                Chat <span class="material-symbols-outlined text-[14px]">send</span>
+</button>
+</div>
+</div>
+<!-- Included Plan Perks -->
+<div class="p-4 rounded-lg bg-surface border border-outline-variant/20 space-y-3">
+<span class="text-label-caps font-label-caps text-on-surface-variant block uppercase tracking-wider">Active Plan Perks</span>
+<ul class="space-y-2 text-body-sm font-body-sm text-on-surface">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span><span class=""><strong>All Access:</strong> All Warrior City Gyms</span></li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
+<span class=""><strong>Steam &amp; Sauna:</strong> Daily Uncapped</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">confirmation_number</span>
+<span class=""><strong>Guest Passes:</strong> 2 remaining this cycle</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Self-Service Notice -->
+<div class="bg-surface-container-low p-4 rounded-lg border border-outline-variant/30 flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[22px] flex-shrink-0 mt-0.5">security</span>
+<div>
+<h5 class="text-body-sm font-body-sm font-semibold text-on-surface">Private Self-Service Member Space</h5>
+<p class="text-label-md font-label-md text-on-surface-variant">
+              This portal is locked to your membership ID (#M-1042). Staff configurations, administrative logs, and cross-member profiles are restricted. To make changes to your registered phone or bank accounts, visit the Midtown front desk.
+            </p>
+</div>
+</div>
+</div>
+<!-- Tab 2: Attendance Records -->
+<div class="tab-pane hidden p-6 space-y-4" id="attendanceTab">
+<div class="flex items-center justify-between">
+<h4 class="text-headline-sm font-headline-sm text-on-surface">Turnstile Access History</h4>
+<span class="text-label-caps font-label-caps bg-surface-container px-2.5 py-1 rounded text-primary">Live IoT Feed</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-body-sm font-body-sm">
+<thead>
+<tr class="border-b border-outline-variant/30 text-label-caps font-label-caps text-on-surface-variant uppercase">
+<th class="py-3 px-4">Date &amp; Time</th>
+<th class="py-3 px-4">Location / Gate</th>
+<th class="py-3 px-4">Auth Method</th>
+<th class="py-3 px-4 text-center">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low/50">
+<td class="py-3.5 px-4 font-semibold text-on-surface">
+                  Today at 07:15 AM
+                  <span class="block text-[11px] font-normal text-on-surface-variant">Morning Strength Cycle</span>
+</td>
+<td class="py-3.5 px-4 text-on-surface">Turnstile Gate A (Midtown Hub)</td>
+<td class="py-3.5 px-4 text-on-surface-variant flex items-center gap-1.5 pt-4">
+<span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+<span class="">Digital Member QR</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-label-caps font-label-caps">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    SUCCESS
+                  </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50">
+<td class="py-3.5 px-4 font-semibold text-on-surface">
+                  Yesterday at 06:45 PM
+                  <span class="block text-[11px] font-normal text-on-surface-variant">Evening Cardio &amp; Sauna</span>
+</td>
+<td class="py-3.5 px-4 text-on-surface">Turnstile Gate B (Midtown Hub)</td>
+<td class="py-3.5 px-4 text-on-surface-variant flex items-center gap-1.5 pt-4">
+<span class="material-symbols-outlined text-[16px]">contactless</span>
+<span class="">NFC Mobile Tap</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-label-caps font-label-caps">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    SUCCESS
+                  </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50">
+<td class="py-3.5 px-4 font-semibold text-on-surface">
+                  20 Oct 2026 at 07:05 AM
+                  <span class="block text-[11px] font-normal text-on-surface-variant">PT Session with Vikram</span>
+</td>
+<td class="py-3.5 px-4 text-on-surface">Turnstile Gate A (Midtown Hub)</td>
+<td class="py-3.5 px-4 text-on-surface-variant flex items-center gap-1.5 pt-4">
+<span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+<span class="">Digital Member QR</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-label-caps font-label-caps">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    SUCCESS
+                  </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Tab 3: Invoices & Receipts -->
+<div class="tab-pane hidden p-6 space-y-4" id="invoicesTab">
+<div class="flex items-center justify-between">
+<div>
+<h4 class="text-headline-sm font-headline-sm text-on-surface">Billing History &amp; Invoices</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Official GST invoices and transaction slips for reimbursement.</p>
+</div>
+<button class="px-3 py-1.5 rounded-lg border border-outline-variant/40 hover:bg-surface-container text-body-sm font-body-sm text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">download</span>
+            Statement
+          </button>
+</div>
+<div class="border border-outline-variant/30 rounded-lg overflow-hidden divide-y divide-outline-variant/20">
+<!-- Active Receipt Row -->
+<div class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface-container-lowest hover:bg-surface-container-low/30 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">receipt</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-bold text-body-md font-body-md text-on-surface">Invoice #INV-8821</span>
+<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">PAID</span>
+</div>
+<div class="text-label-md font-label-md text-on-surface-variant">
+                  Paid on 24 Apr 2026 • Method: <span class="font-medium text-on-surface">UPI (rahul@okaxis)</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+<div class="text-right">
+<span class="text-headline-sm font-headline-sm font-bold text-on-surface">₹3,500</span>
+<span class="block text-[11px] text-on-surface-variant">Incl. 18% GST</span>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-semibold text-label-md font-label-md flex items-center gap-1 transition-all" onclick="alert('Downloading Tax Receipt INV-8821.pdf');">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+                PDF
+              </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- INSTANT RENEWAL MODAL (Interactive Member Flow) -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" id="renewalModal">
+<div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl border border-outline-variant/30 overflow-hidden animate-fade-in">
+<div class="p-6 space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">bolt</span>
+</span>
+<h3 class="text-headline-sm font-headline-sm font-bold text-on-surface">Instant Pass Renewal</h3>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface" onclick="document.getElementById('renewalModal').classList.add('hidden')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">
+          Your pass expires in <strong class="text-error">3 days</strong> (22 Oct 2026). Locking your renewal today ensures uninterrupted gym entry and waives the re-activation fee.
+        </p>
+<!-- Renewal Options -->
+<div class="space-y-2.5">
+<label class="block p-3 rounded-lg border-2 border-primary bg-surface-container-low cursor-pointer flex items-center justify-between">
+<div class="flex items-center gap-3">
+<input checked="" class="text-primary focus:ring-primary" name="renewPlan" type="radio">
+<div>
+<span class="block text-label-lg font-label-lg font-bold text-on-surface">6 Months Renewal</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Includes 2 Guest Passes</span>
+</div>
+</div>
+<span class="text-body-md font-body-md font-bold text-primary">₹3,500</span>
+</label>
+<label class="block p-3 rounded-lg border border-outline-variant/40 hover:bg-surface-container cursor-pointer flex items-center justify-between">
+<div class="flex items-center gap-3">
+<input class="text-primary focus:ring-primary" name="renewPlan" type="radio">
+<div>
+<span class="block text-label-lg font-label-lg font-bold text-on-surface">Annual Membership</span>
+<span class="text-label-md font-label-md text-emerald-600 font-semibold">Save 25% + Free Locker</span>
+</div>
+</div>
+<span class="text-body-md font-body-md font-bold text-on-surface">₹6,200</span>
+</label>
+</div>
+<div class="pt-2">
+<button class="w-full py-3 rounded-lg bg-primary hover:bg-secondary text-white font-label-lg text-label-lg font-bold shadow-md transition-all active:scale-98 flex items-center justify-center gap-2" onclick="alert('Payment gateway redirecting for UPI / Card checkout...'); document.getElementById('renewalModal').classList.add('hidden');">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+            Pay Securely Now
+          </button>
+<p class="text-center text-[11px] text-on-surface-variant mt-2">Instant turnstile validity update via encrypted sync.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- FIXED BOTTOM NAVIGATION BAR (Customer Destinations Anchor) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 border-t border-outline-variant/30 bg-surface-container-lowest/90 backdrop-blur-lg shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+<!-- Tab 1: Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant gap-1 py-1 hover:text-primary transition-colors active:scale-95" href="#">
+<span class="material-symbols-outlined text-[20px]">home</span>
+<span class="text-label-md font-label-md">Home</span>
+</a>
+<!-- Tab 2: Pass -->
+<a class="flex flex-col items-center justify-center text-primary font-semibold gap-1 py-1 hover:text-primary transition-colors active:scale-95" href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+<span class="text-label-md font-label-md">Pass</span>
+</a>
+<!-- Tab 3: Attendance -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant gap-1 py-1 hover:text-primary transition-colors active:scale-95" href="#" onclick="switchTab('attendanceTab'); return false;">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+<span class="text-label-md font-label-md">Attendance</span>
+</a>
+<!-- Tab 4: Invoices -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant gap-1 py-1 hover:text-primary transition-colors active:scale-95" href="#" onclick="switchTab('invoicesTab'); return false;">
+<span class="material-symbols-outlined text-[20px]">receipt</span>
+<span class="text-label-md font-label-md">Invoices</span>
+</a>
+<!-- Tab 5: Profile (Active Member Scope) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant gap-1 py-1 hover:text-primary transition-colors active:scale-95" href="#" onclick="switchTab('detailsTab'); return false;">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+<span class="text-label-md font-label-md">Profile</span>
+</a>
+</nav>
+<!-- Interactive Logic for Tab Switching -->
+<script>
+    function switchTab(tabId) {
+      // Hide all panes
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      // Show selected pane
+      const target = document.getElementById(tabId);
+      if(target) target.classList.remove('hidden');
+
+      // Update button styles
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('border-primary', 'text-primary', 'font-semibold');
+        btn.classList.add('border-transparent', 'text-on-surface-variant');
+      });
+
+      if (tabId === 'detailsTab') {
+        const btn = document.getElementById('tabBtn-details');
+        if(btn) {
+          btn.classList.add('border-primary', 'text-primary', 'font-semibold');
+          btn.classList.remove('border-transparent', 'text-on-surface-variant');
+        }
+      } else if (tabId === 'attendanceTab') {
+        const btn = document.getElementById('tabBtn-attendance');
+        if(btn) {
+          btn.classList.add('border-primary', 'text-primary', 'font-semibold');
+          btn.classList.remove('border-transparent', 'text-on-surface-variant');
+        }
+      } else if (tabId === 'invoicesTab') {
+        const btn = document.getElementById('tabBtn-invoices');
+        if(btn) {
+          btn.classList.add('border-primary', 'text-primary', 'font-semibold');
+          btn.classList.remove('border-transparent', 'text-on-surface-variant');
+        }
+      }
+    }
+  </script>
+
+
+</body></html>

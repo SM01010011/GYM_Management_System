@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WARRIOR FITNESS | Unified Platform &amp; Payment Gateway</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Plus Jakarta Sans & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#bc0100",
+            "primary-container": "#eb0000",
+            "secondary": "#b72114",
+            "secondary-container": "#ff5540",
+            "surface": "#fff8f6",
+            "surface-bright": "#fff8f6",
+            "surface-dim": "#f8d1cb",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#fff0ee",
+            "surface-container": "#ffe9e6",
+            "surface-container-high": "#ffe2dd",
+            "on-surface": "#2b1613",
+            "on-surface-variant": "#603e39",
+            "outline": "#956d67",
+            "outline-variant": "#ebbbb4",
+            "background": "#fff8f6"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans", "sans-serif"],
+            "body": ["Inter", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .pulse-indicator {
+      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.15); }
+    }
+    @keyframes scan-laser {
+      0% { top: 0%; opacity: 0.8; }
+      50% { top: 95%; opacity: 1; }
+      100% { top: 0%; opacity: 0.8; }
+    }
+    .laser-line {
+      position: absolute;
+      left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, #eb0000, #ff5540, transparent);
+      box-shadow: 0 0 10px #eb0000;
+      animation: scan-laser 2.2s ease-in-out infinite;
+    }
+    .athletic-shadow {
+      box-shadow: 0 10px 25px -5px rgba(188, 1, 0, 0.12), 0 8px 10px -6px rgba(188, 1, 0, 0.08);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased font-body min-h-screen flex flex-col selection:bg-primary selection:text-white">
+<!-- ========================================================================= -->
+<!-- TOP NAVIGATION BAR                                                        -->
+<!-- ========================================================================= -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-outline-variant shadow-sm w-full">
+<div class="flex justify-between items-center w-full px-4 lg:px-8 h-16 max-w-full mx-auto">
+<!-- Logo & Hub Status -->
+<div class="flex items-center gap-4">
+<a class="flex items-center gap-2.5 cursor-pointer group" onclick="switchView('public')">
+<div class="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center text-white shadow group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+</div>
+<div>
+<div class="font-headline font-bold text-lg text-primary tracking-tight leading-none">WARRIOR FITNESS</div>
+<div class="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant">Kinetic Labs Ecosystem</div>
+</div>
+</a>
+<div class="hidden md:flex items-center gap-2 px-2.5 py-1 bg-surface-container-low border border-outline-variant rounded-full text-xs">
+<span class="w-2 h-2 rounded-full bg-emerald-500 pulse-indicator"></span>
+<span class="font-semibold text-on-surface">Downtown HQ</span>
+<span class="text-on-surface-variant">| Optical Turnstiles Online</span>
+</div>
+</div>
+<!-- Navigation links for Portals -->
+<nav class="hidden lg:flex items-center gap-6 text-sm font-semibold">
+<button class="text-primary border-b-2 border-primary py-2 transition-all" id="nav-public" onclick="switchView('public')">Public Web</button>
+<button class="text-on-surface-variant hover:text-on-surface py-2 transition-all" id="nav-login" onclick="switchView('login')">Portal Login</button>
+<button class="text-on-surface-variant hover:text-on-surface py-2 transition-all" id="nav-owner" onclick="switchView('owner')">Admin Hub</button>
+<button class="text-on-surface-variant hover:text-on-surface py-2 transition-all" id="nav-staff" onclick="switchView('staff')">Staff Desk</button>
+<button class="text-on-surface-variant hover:text-on-surface py-2 transition-all" id="nav-member" onclick="switchView('member')">Member Pass</button>
+</nav>
+<!-- Trailing Action Buttons -->
+<div class="flex items-center gap-3">
+<button class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-primary text-primary hover:bg-primary-container hover:text-white transition-all" onclick="openPaymentModal('Premium Conditioning', 3500, '6 Months Unlimited Access with Personal Coach')">
+<span class="material-symbols-outlined text-sm">credit_card</span>
+<span>Quick Join</span>
+</button>
+<button class="px-3.5 py-1.5 bg-primary-container text-white rounded-lg text-xs font-bold shadow hover:bg-primary transition-all flex items-center gap-1.5" onclick="switchView('login')">
+<span class="material-symbols-outlined text-sm">login</span>
+<span id="header-auth-label">Role Login</span>
+</button>
+<button class="p-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:text-primary transition-colors" onclick="signOut()" title="Sign Out">
+<span class="material-symbols-outlined text-lg">logout</span>
+</button>
+</div>
+</div>
+<!-- Active Viewport Switcher Strip -->
+<div class="bg-surface-container-low border-t border-outline-variant px-4 lg:px-8 py-2">
+<div class="max-w-7xl mx-auto flex items-center justify-between gap-3 overflow-x-auto">
+<div class="flex items-center gap-2 shrink-0">
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mr-1">Active View:</span>
+<button class="view-pill px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-primary text-white shadow-sm transition-all" id="pill-public" onclick="switchView('public')">
+<span class="material-symbols-outlined text-sm">public</span>
+<span>Brand Website</span>
+</button>
+<button class="view-pill px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-white text-on-surface border border-outline-variant hover:border-primary transition-all" id="pill-login" onclick="switchView('login')">
+<span class="material-symbols-outlined text-sm">lock</span>
+<span>Role Login</span>
+</button>
+<button class="view-pill px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-white text-on-surface border border-outline-variant hover:border-primary transition-all" id="pill-owner" onclick="switchView('owner')">
+<span class="material-symbols-outlined text-sm">shield_person</span>
+<span>Admin / Owner Hub</span>
+</button>
+<button class="view-pill px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-white text-on-surface border border-outline-variant hover:border-primary transition-all" id="pill-staff" onclick="switchView('staff')">
+<span class="material-symbols-outlined text-sm">badge</span>
+<span>Staff Desk</span>
+</button>
+<button class="view-pill px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-white text-on-surface border border-outline-variant hover:border-primary transition-all" id="pill-member" onclick="switchView('member')">
+<span class="material-symbols-outlined text-sm">account_circle</span>
+<span>Customer Portal</span>
+</button>
+</div>
+<div class="hidden sm:flex items-center gap-2 text-xs text-on-surface-variant shrink-0">
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> RBAC Security Active
+          </span>
+</div>
+</div>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN CONTAINER (MULTIPLE INTEGRATED PORTALS)                               -->
+<!-- ========================================================================= -->
+<main class="flex-grow w-full relative">
+<!-- --------------------------------------------------------------------- -->
+<!-- VIEW 1: PUBLIC BRAND WEBSITE                                          -->
+<!-- --------------------------------------------------------------------- -->
+<section class="view-panel block" id="view-public">
+<!-- Hero -->
+<div class="relative bg-surface-bright border-b border-outline-variant overflow-hidden py-14 lg:py-20 px-4 lg:px-8">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+<div class="lg:col-span-7 space-y-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container border border-outline-variant text-primary text-xs font-bold">
+<span class="material-symbols-outlined text-sm">bolt</span>
+<span>24/7 BIOMETRIC RECOGNITION &amp; KINETIC PERFORMANCE</span>
+</div>
+<h1 class="text-4xl lg:text-6xl font-headline font-extrabold text-on-surface tracking-tight leading-tight uppercase">
+              FORGE <span class="text-primary underline decoration-primary-container decoration-4">UNBREAKABLE</span> STRENGTH &amp; MASTERY
+            </h1>
+<p class="text-base text-on-surface-variant max-w-xl">
+              High-octane technical conditioning engineered with surgical precision. Synchronized RFID turnstile credentials, sub-zero cryotherapy recovery, and Olympic strength training.
+            </p>
+<div class="flex flex-wrap items-center gap-4 pt-2">
+<button class="px-6 py-3.5 bg-primary-container text-white font-headline text-sm font-bold rounded-lg shadow-lg hover:bg-primary transition-all flex items-center gap-2" onclick="scrollToPricing()">
+<span>VIEW MEMBERSHIP PLANS</span>
+<span class="material-symbols-outlined text-lg">arrow_downward</span>
+</button>
+<button class="px-5 py-3.5 bg-white text-on-surface font-semibold text-sm border border-outline-variant rounded-lg hover:border-primary transition-all flex items-center gap-2" onclick="switchView('login')">
+<span class="material-symbols-outlined text-lg">login</span>
+<span>Enter Portal Login</span>
+</button>
+</div>
+<!-- Telemetry Stats -->
+<div class="grid grid-cols-3 gap-4 pt-6 border-t border-outline-variant max-w-lg">
+<div>
+<div class="text-2xl font-headline font-extrabold text-on-surface">99.8%</div>
+<div class="text-[11px] font-bold text-on-surface-variant uppercase">Turnstile Uptime</div>
+</div>
+<div>
+<div class="text-2xl font-headline font-extrabold text-primary">48ms</div>
+<div class="text-[11px] font-bold text-on-surface-variant uppercase">RFID Latency</div>
+</div>
+<div>
+<div class="text-2xl font-headline font-extrabold text-on-surface">24/7</div>
+<div class="text-[11px] font-bold text-on-surface-variant uppercase">Downtown Lab</div>
+</div>
+</div>
+</div>
+<!-- Hero Graphic Card -->
+<div class="lg:col-span-5 relative">
+<div class="rounded-2xl overflow-hidden border border-outline-variant shadow-xl bg-white relative">
+<img alt="Warrior Fitness High Performance Floor" class="w-full h-80 object-cover" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+<div class="p-5 bg-white border-t border-outline-variant flex items-center justify-between">
+<div>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">LIVE TELEMETRY</span>
+<div class="font-headline font-bold text-sm text-on-surface mt-1">Downtown Kinetic Hub • Floor 01</div>
+<div class="text-xs text-on-surface-variant">Occupancy: 42 Athletes • Ambient O₂: 21.2%</div>
+</div>
+<button class="px-3.5 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-container transition-all" onclick="openPaymentModal('Premium Conditioning', 3500, '6 Months Unlimited Access with Assigned Coach')">
+                  Join Now
+                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pricing Plans & Instant Checkout Section -->
+<div class="bg-surface-container-low border-b border-outline-variant py-16 px-4 lg:px-8" id="pricing-section">
+<div class="max-w-7xl mx-auto">
+<div class="text-center max-w-2xl mx-auto mb-12">
+<span class="text-xs font-bold text-primary tracking-widest uppercase">Transparent Pricing Engine</span>
+<h2 class="text-3xl font-headline font-extrabold text-on-surface mt-1">MEMBERSHIP TIERS &amp; INSTANT ENROLLMENT</h2>
+<p class="text-sm text-on-surface-variant mt-2">Pick a plan to immediately trigger our secure checkout with UPI, Card, Net Banking, or Desk POS.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Plan 1 -->
+<div class="bg-white rounded-xl border border-outline-variant p-6 flex flex-col justify-between shadow-sm hover:border-primary transition-all">
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Entry Level</span>
+<h3 class="font-headline font-bold text-lg text-on-surface mt-1">Basic Access</h3>
+<div class="mt-4 mb-5">
+<span class="text-3xl font-headline font-extrabold text-on-surface">₹800</span>
+<span class="text-xs text-on-surface-variant">/ month</span>
+</div>
+<ul class="space-y-2.5 text-xs text-on-surface mb-6">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Floor Access (06:00 - 22:00)</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Basic Mobile Locker App</li>
+<li class="flex items-center gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-gray-400 text-sm">cancel</span> Standard Turnstile Only</li>
+</ul>
+</div>
+<button class="w-full py-2.5 rounded-lg border border-primary text-primary font-bold text-xs hover:bg-primary hover:text-white transition-all" onclick="openPaymentModal('Basic Access', 800, '1 Month Standard Floor Access')">
+                Select Basic Access
+              </button>
+</div>
+<!-- Plan 2 -->
+<div class="bg-white rounded-xl border border-outline-variant p-6 flex flex-col justify-between shadow-sm hover:border-primary transition-all">
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Balanced Dedication</span>
+<h3 class="font-headline font-bold text-lg text-on-surface mt-1">Standard Strength</h3>
+<div class="mt-4 mb-5">
+<span class="text-3xl font-headline font-extrabold text-on-surface">₹2,000</span>
+<span class="text-xs text-on-surface-variant">/ 3 months</span>
+</div>
+<ul class="space-y-2.5 text-xs text-on-surface mb-6">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> 24/7 Access to Downtown Lab</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> RFID Pass &amp; Digital Locker</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Monthly Biometric Scan</li>
+</ul>
+</div>
+<button class="w-full py-2.5 rounded-lg border border-primary text-primary font-bold text-xs hover:bg-primary hover:text-white transition-all" onclick="openPaymentModal('Standard Strength', 2000, '3 Months 24/7 Access with RFID pass')">
+                Select Standard
+              </button>
+</div>
+<!-- Plan 3 (Most Popular) -->
+<div class="bg-white rounded-xl border-2 border-primary p-6 flex flex-col justify-between shadow-lg relative">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">
+                MOST POPULAR
+              </div>
+<div>
+<span class="text-[10px] font-bold text-primary uppercase">Elite Athlete Choice</span>
+<h3 class="font-headline font-bold text-lg text-on-surface mt-1">Premium Conditioning</h3>
+<div class="mt-4 mb-5">
+<span class="text-3xl font-headline font-extrabold text-primary">₹3,500</span>
+<span class="text-xs text-on-surface-variant">/ 6 months</span>
+</div>
+<ul class="space-y-2.5 text-xs text-on-surface mb-6">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Unlimited 24/7 Regional Access</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> 1:1 Assigned Master Coach</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Real-Time Dynamic QR Turnstile Pass</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Weekly Cryotherapy Sessions</li>
+</ul>
+</div>
+<button class="w-full py-2.5 rounded-lg bg-primary text-white font-bold text-xs shadow hover:bg-primary-container transition-all" onclick="openPaymentModal('Premium Conditioning', 3500, '6 Months Unlimited Access with Assigned Coach &amp; Cryo')">
+                Join Premium Now
+              </button>
+</div>
+<!-- Plan 4 -->
+<div class="bg-white rounded-xl border border-outline-variant p-6 flex flex-col justify-between shadow-sm hover:border-primary transition-all">
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">All-Inclusive Pro</span>
+<h3 class="font-headline font-bold text-lg text-on-surface mt-1">Annual VIP</h3>
+<div class="mt-4 mb-5">
+<span class="text-3xl font-headline font-extrabold text-on-surface">₹6,000</span>
+<span class="text-xs text-on-surface-variant">/ 12 months</span>
+</div>
+<ul class="space-y-2.5 text-xs text-on-surface mb-6">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Global Access to All Hubs</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Dedicated Permanent VIP Locker</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> Unlimited Cryo &amp; Infrared Sauna</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span> 12 Free Guest Passes / Year</li>
+</ul>
+</div>
+<button class="w-full py-2.5 rounded-lg border border-primary text-primary font-bold text-xs hover:bg-primary hover:text-white transition-all" onclick="openPaymentModal('Annual VIP', 6000, '12 Months All-Inclusive Pro Global Access')">
+                Select VIP Pass
+              </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- --------------------------------------------------------------------- -->
+<!-- VIEW 2: UNIVERSAL ROLE-BASED LOGIN GATEWAY                             -->
+<!-- --------------------------------------------------------------------- -->
+<section class="view-panel hidden py-14 px-4 lg:px-8" id="view-login">
+<div class="max-w-xl mx-auto">
+<div class="text-center mb-8">
+<div class="w-12 h-12 bg-primary-container text-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow">
+<span class="material-symbols-outlined text-2xl">lock_open</span>
+</div>
+<h2 class="text-2xl font-headline font-extrabold text-on-surface">Universal Authentication Gateway</h2>
+<p class="text-xs text-on-surface-variant mt-1">Select your role or click instant demo credentials to access each respective interface.</p>
+</div>
+<div class="bg-white rounded-2xl border border-outline-variant shadow-lg p-6 sm:p-8">
+<!-- Role Selector Tabs -->
+<div class="flex rounded-lg bg-surface-container-low p-1 mb-6 border border-outline-variant text-xs font-bold">
+<button class="flex-1 py-2 rounded-md text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1" id="btn-login-owner" onclick="setLoginRole('owner')">
+<span class="material-symbols-outlined text-sm">shield_person</span>
+<span>Admin / Owner</span>
+</button>
+<button class="flex-1 py-2 rounded-md text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1" id="btn-login-staff" onclick="setLoginRole('staff')">
+<span class="material-symbols-outlined text-sm">badge</span>
+<span>Staff Desk</span>
+</button>
+<button class="flex-1 py-2 rounded-md bg-white text-primary shadow-sm transition-all flex items-center justify-center gap-1" id="btn-login-member" onclick="setLoginRole('member')">
+<span class="material-symbols-outlined text-sm">account_circle</span>
+<span>Member</span>
+</button>
+</div>
+<!-- Quick 1-Click Demo Profiles -->
+<div class="mb-6 p-4 rounded-xl bg-surface-container-low border border-outline-variant">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">1-Click Instant Login:</span>
+<span class="text-[10px] text-primary font-bold">Auto-routes to role</span>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<button class="p-2.5 rounded bg-white border border-outline-variant text-left hover:border-primary transition-all group" onclick="fillAndSubmitLogin('owner@warriorfitness.com', 'adminPass', 'owner')">
+<div class="text-xs font-bold text-on-surface group-hover:text-primary">Marcus Vance</div>
+<div class="text-[10px] text-primary font-bold">👑 Admin / Owner</div>
+</button>
+<button class="p-2.5 rounded bg-white border border-outline-variant text-left hover:border-primary transition-all group" onclick="fillAndSubmitLogin('staff@warriorfitness.com', 'staffPass', 'staff')">
+<div class="text-xs font-bold text-on-surface group-hover:text-primary">Karan Verma</div>
+<div class="text-[10px] text-emerald-700 font-bold">📋 Front Staff</div>
+</button>
+<button class="p-2.5 rounded bg-white border border-outline-variant text-left hover:border-primary transition-all group" onclick="fillAndSubmitLogin('rahul@warriorfitness.com', 'memberPass', 'member')">
+<div class="text-xs font-bold text-on-surface group-hover:text-primary">Rahul Sharma</div>
+<div class="text-[10px] text-on-surface-variant font-bold">👤 Member Pass</div>
+</button>
+</div>
+</div>
+<!-- Login Form -->
+<form class="space-y-4" onsubmit="handleLoginSubmit(event)">
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">Identity UID / Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-base">mail</span>
+<input class="w-full pl-9 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" id="login-email" required="" type="email" value="owner@warriorfitness.com"/>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<label class="block text-xs font-bold text-on-surface">Secret Passphrase</label>
+<a class="text-[11px] text-primary hover:underline" href="javascript:void(0)" onclick="alert('Password reset link sent to registered email.')">Forgot?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-base">key</span>
+<input class="w-full pl-9 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" id="login-pass" required="" type="password" value="admin123"/>
+</div>
+</div>
+<!-- Role Route Note -->
+<div class="p-2.5 rounded-lg bg-red-50 border border-red-200 text-xs text-primary font-medium flex items-center gap-2" id="role-route-note">
+<span class="material-symbols-outlined text-sm">info</span>
+<span id="role-route-text">Signing in as <strong>Admin / Owner</strong> will directly open the <strong>Owner Executive Hub</strong>.</span>
+</div>
+<button class="w-full py-3 bg-primary-container text-white font-bold text-xs rounded-lg shadow hover:bg-primary transition-all flex items-center justify-center gap-2" id="btn-login-submit" type="submit">
+<span>AUTHENTICATE &amp; ENTER PORTAL</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</form>
+</div>
+</div>
+</section>
+<!-- --------------------------------------------------------------------- -->
+<!-- VIEW 3: OWNER / ADMIN EXECUTIVE HUB                                   -->
+<!-- --------------------------------------------------------------------- -->
+<section class="view-panel hidden py-8 px-4 lg:px-8" id="view-owner">
+<div class="max-w-7xl mx-auto space-y-6">
+<!-- Header Strip -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-outline-variant">
+<div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded bg-primary text-white text-[10px] font-bold uppercase tracking-wider">ADMIN GOVERNANCE</span>
+<span class="text-xs text-on-surface-variant font-medium">Logged in as: <strong class="text-on-surface">Marcus Vance (Owner / Founder)</strong></span>
+<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 pulse-indicator"></span> Full Control
+              </span>
+</div>
+<h2 class="text-2xl font-headline font-extrabold text-on-surface mt-1">Warrior Executive Command Center</h2>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-2 rounded-lg bg-surface-container border border-outline-variant text-xs font-bold text-on-surface hover:border-primary transition-all flex items-center gap-1" onclick="switchView('staff')">
+<span class="material-symbols-outlined text-sm">badge</span>
+<span>Open Staff Desk</span>
+</button>
+<button class="px-3.5 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-container transition-all flex items-center gap-1" onclick="openPaymentModal('Executive Plan', 6000, 'Admin Manual Registration')">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>+ Add &amp; Collect</span>
+</button>
+<button class="px-3 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:text-primary transition-all" onclick="signOut()">
+              Sign Out
+            </button>
+</div>
+</div>
+<!-- KPI Metrics Grid -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Total Members</span>
+<div class="text-2xl font-headline font-extrabold text-on-surface mt-1">248</div>
+<div class="text-[11px] text-emerald-700 font-bold mt-1">+19 this month</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Active Passes</span>
+<div class="text-2xl font-headline font-extrabold text-emerald-700 mt-1">199</div>
+<div class="text-[11px] text-on-surface-variant mt-1">80.2% floor utilization</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Expiring in 7 Days</span>
+<div class="text-2xl font-headline font-extrabold text-secondary mt-1">16</div>
+<div class="text-[11px] text-secondary font-bold mt-1">Immediate retention desk</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">MTD Revenue</span>
+<div class="text-2xl font-headline font-extrabold text-primary mt-1" id="admin-kpi-rev">₹86,630</div>
+<div class="text-[11px] text-emerald-700 font-bold mt-1">+16% vs target</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Net Solvency</span>
+<div class="text-2xl font-headline font-extrabold text-on-surface mt-1">₹64,250</div>
+<div class="text-[11px] text-on-surface-variant mt-1">74.2% margin</div>
+</div>
+</div>
+<!-- 2 Columns: Staff RBAC & Live Ledger -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<div class="lg:col-span-7 bg-white rounded-xl border border-outline-variant p-5 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline font-bold text-sm text-on-surface">Staff RBAC &amp; Turnstile Privileges</h3>
+<span class="text-[11px] font-mono bg-surface-container px-2 py-0.5 rounded text-primary font-bold">4 Active Staff</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-xs">
+<thead>
+<tr class="border-b border-outline-variant text-[10px] uppercase font-bold text-on-surface-variant">
+<th class="py-2">Staff Member</th>
+<th class="py-2">Assigned Role</th>
+<th class="py-2">Permission</th>
+<th class="py-2 text-right">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-medium">
+<tr>
+<td class="py-2.5 font-bold">Karan Verma</td>
+<td class="py-2.5 text-on-surface-variant">Desk Supervisor</td>
+<td class="py-2.5"><span class="px-2 py-0.5 rounded bg-primary-container text-white text-[10px] font-bold">OVERRIDE_GATE</span></td>
+<td class="py-2.5 text-right text-emerald-700 font-bold">On Duty</td>
+</tr>
+<tr>
+<td class="py-2.5 font-bold">Pooja Nair</td>
+<td class="py-2.5 text-on-surface-variant">POS Cashier</td>
+<td class="py-2.5"><span class="px-2 py-0.5 rounded bg-surface-container text-on-surface text-[10px] font-bold">COLLECT_PAYMENT</span></td>
+<td class="py-2.5 text-right text-emerald-700 font-bold">On Duty</td>
+</tr>
+<tr>
+<td class="py-2.5 font-bold">Vikram Rajput</td>
+<td class="py-2.5 text-on-surface-variant">Master Coach</td>
+<td class="py-2.5"><span class="px-2 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-bold">COACH_TELEMETRY</span></td>
+<td class="py-2.5 text-right text-gray-500 font-bold">Floor Standby</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Live Audit Ledger -->
+<div class="lg:col-span-5 bg-white rounded-xl border border-outline-variant p-5 shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<h3 class="font-headline font-bold text-sm text-on-surface">Live Payment &amp; Access Audit</h3>
+<span class="material-symbols-outlined text-primary text-base">verified</span>
+</div>
+<div class="space-y-2 text-xs font-mono" id="admin-audit-log">
+<div class="p-2.5 rounded bg-surface-container-low border border-outline-variant">
+<div class="flex justify-between text-[11px] text-on-surface-variant">
+<span class="text-primary font-bold">PAYMENT_CAPTURED</span>
+<span>14:40:12</span>
+</div>
+<div class="text-on-surface font-semibold">UPI ₹4,130 for Premium Conditioning</div>
+<div class="text-[10px] text-gray-500">Payer: Rahul Sharma (#M-1042)</div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-low border border-outline-variant">
+<div class="flex justify-between text-[11px] text-on-surface-variant">
+<span class="text-emerald-700 font-bold">TURNSTILE_ACCESS</span>
+<span>14:38:00</span>
+</div>
+<div class="text-on-surface font-semibold">Optical Gate #04 Granted - QR Scanned</div>
+<div class="text-[10px] text-gray-500">Latency: 42ms • SHA256 verified</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- --------------------------------------------------------------------- -->
+<!-- VIEW 4: STAFF OPERATIONS DESK                                         -->
+<!-- --------------------------------------------------------------------- -->
+<section class="view-panel hidden py-8 px-4 lg:px-8" id="view-staff">
+<div class="max-w-7xl mx-auto space-y-6">
+<!-- Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-outline-variant">
+<div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider">FRONT DESK TERMINAL</span>
+<span class="text-xs text-on-surface-variant font-medium">Logged in Operator: <strong class="text-on-surface">Karan Verma</strong></span>
+</div>
+<h2 class="text-2xl font-headline font-extrabold text-on-surface mt-1">Staff Operations &amp; Turnstile Desk</h2>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-2 rounded-lg border border-red-300 text-red-700 hover:bg-red-50 text-xs font-bold transition-all flex items-center gap-1" onclick="emergencyUnlock()">
+<span class="material-symbols-outlined text-sm">lock_open</span>
+<span>Manual Gate Unlock</span>
+</button>
+<button class="px-3 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:text-primary transition-all" onclick="signOut()">
+              Sign Out
+            </button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Onboard Member & POS Form -->
+<div class="lg:col-span-8 bg-white rounded-2xl border border-outline-variant p-6 shadow-sm">
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-5">
+<div>
+<h3 class="font-headline font-bold text-base text-on-surface">Rapid Member Onboarding &amp; Payment Collection</h3>
+<p class="text-xs text-on-surface-variant">Select plan, enter customer credentials, and launch the payment gateway.</p>
+</div>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-primary-container text-white">INTEGRATED POS</span>
+</div>
+<form class="space-y-4" onsubmit="handleStaffOnboardSubmit(event)">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">Athlete Full Name</label>
+<input class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" id="staff-name" required="" type="text" value="Siddharth Rao"/>
+</div>
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">WhatsApp / Phone Number</label>
+<input class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" id="staff-phone" required="" type="tel" value="+91 98450 44321"/>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">Email for Receipt &amp; Pass</label>
+<input class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" id="staff-email" required="" type="email" value="siddharth.rao@example.com"/>
+</div>
+<!-- Plan Selector -->
+<div>
+<label class="block text-xs font-bold text-on-surface mb-2">Assign Membership Plan Tier</label>
+<div class="grid grid-cols-3 gap-3 text-xs">
+<label class="p-3 rounded-lg border border-outline-variant cursor-pointer hover:border-primary flex flex-col justify-between" onclick="setStaffPlan('Basic Access', 800)">
+<input class="text-primary focus:ring-primary" name="staff_plan" type="radio" value="800"/>
+<span class="font-bold text-on-surface mt-2">Basic (1 Mo)</span>
+<span class="text-on-surface-variant">₹800</span>
+</label>
+<label class="p-3 rounded-lg border-2 border-primary bg-surface-container-low cursor-pointer flex flex-col justify-between" onclick="setStaffPlan('Premium Conditioning', 3500)">
+<input checked="" class="text-primary focus:ring-primary" name="staff_plan" type="radio" value="3500"/>
+<span class="font-bold text-primary mt-2">Premium (6 Mo)</span>
+<span class="text-on-surface-variant">₹3,500</span>
+</label>
+<label class="p-3 rounded-lg border border-outline-variant cursor-pointer hover:border-primary flex flex-col justify-between" onclick="setStaffPlan('Annual VIP', 6000)">
+<input class="text-primary focus:ring-primary" name="staff_plan" type="radio" value="6000"/>
+<span class="font-bold text-on-surface mt-2">Annual VIP</span>
+<span class="text-on-surface-variant">₹6,000</span>
+</label>
+</div>
+</div>
+<div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant flex items-center justify-between">
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Total Payable (incl 18% GST)</span>
+<div class="text-2xl font-headline font-extrabold text-primary" id="staff-total-display">₹4,130</div>
+</div>
+<button class="px-6 py-3 bg-primary text-white font-bold text-xs rounded-lg hover:bg-primary-container shadow transition-all flex items-center gap-2" type="submit">
+<span class="material-symbols-outlined text-base">point_of_sale</span>
+<span>Launch Payment Gateway</span>
+</button>
+</div>
+</form>
+</div>
+<!-- Turnstile Status & Quick Scans -->
+<div class="lg:col-span-4 space-y-4">
+<div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm text-center">
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">OPTICAL TURNSTILE #04</span>
+<div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center text-primary mx-auto my-3">
+<span class="material-symbols-outlined text-2xl">sensors</span>
+</div>
+<div class="font-headline font-bold text-sm text-on-surface">Main Entrance Turnstile</div>
+<div class="text-xs text-emerald-700 font-bold mt-0.5">ONLINE • Latency 44ms</div>
+<button class="mt-4 w-full py-2 bg-surface-container border border-outline-variant text-xs font-bold text-on-surface hover:border-primary transition-all" onclick="simulateScan()">
+                Simulate Member Badge Tap
+              </button>
+</div>
+<!-- Recent Gate Verifications -->
+<div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm">
+<h4 class="font-headline font-bold text-xs text-on-surface uppercase mb-3">Live Gate Access Log</h4>
+<div class="space-y-2 text-xs" id="staff-gate-scans">
+<div class="p-2 rounded bg-surface-container-low border border-outline-variant flex justify-between items-center">
+<div>
+<div class="font-bold text-on-surface">Rahul Sharma</div>
+<div class="text-[10px] text-on-surface-variant">#M-1042 • Gate #04</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">GRANTED</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low border border-outline-variant flex justify-between items-center">
+<div>
+<div class="font-bold text-on-surface">Sneha Patel</div>
+<div class="text-[10px] text-on-surface-variant">#M-0988 • Gate #02</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">GRANTED</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- --------------------------------------------------------------------- -->
+<!-- VIEW 5: CUSTOMER PORTAL & DIGITAL MEMBERSHIP PASS                     -->
+<!-- --------------------------------------------------------------------- -->
+<section class="view-panel hidden py-8 px-4 lg:px-8" id="view-member">
+<div class="max-w-7xl mx-auto space-y-6">
+<!-- Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-outline-variant">
+<div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded bg-primary text-white text-[10px] font-bold uppercase tracking-wider">ATHLETE PASS DASHBOARD</span>
+<span class="text-xs text-on-surface-variant font-medium">UID: <strong class="text-on-surface font-mono" id="member-uid-display">#WRR-1042</strong></span>
+</div>
+<h2 class="text-2xl font-headline font-extrabold text-on-surface mt-1" id="member-heading-name">Welcome Back, Rahul Sharma</h2>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg shadow hover:bg-primary-container transition-all flex items-center gap-1.5" onclick="openPaymentModal('Premium Conditioning Renewal', 3500, 'Pass Extension for Rahul Sharma')">
+<span class="material-symbols-outlined text-base">autorenew</span>
+<span>1-Tap Pass Renewal</span>
+</button>
+<button class="px-3 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:text-primary transition-all" onclick="signOut()">
+              Sign Out
+            </button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Dynamic Digital Pass Card -->
+<div class="lg:col-span-5 bg-white rounded-2xl border-2 border-primary shadow-xl p-6 relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">KINETIC DIGITAL PASS</span>
+<h3 class="font-headline font-extrabold text-xl text-on-surface" id="card-member-name">Rahul Sharma</h3>
+<p class="text-xs text-on-surface-variant" id="card-member-plan">Plan: Premium Conditioning (6 Mo)</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-600 pulse-indicator"></span> ACTIVE
+              </span>
+</div>
+<!-- Optical QR Scan Frame -->
+<div class="bg-surface-container-low rounded-xl p-6 border border-outline-variant flex flex-col items-center my-4 relative overflow-hidden">
+<div class="laser-line"></div>
+<div class="w-40 h-40 bg-white p-2 rounded-lg border border-outline-variant shadow-inner flex items-center justify-center relative cursor-pointer" onclick="simulateScan()" title="Click to simulate turnstile optical scan">
+<!-- Optical QR Matrix Graphic -->
+<div class="grid grid-cols-6 gap-1 w-32 h-32 p-1">
+<div class="bg-black rounded-sm"></div><div class="bg-black rounded-sm"></div><div class="bg-black rounded-sm"></div><div class="bg-white"></div><div class="bg-black rounded-sm"></div><div class="bg-black rounded-sm"></div>
+<div class="bg-black rounded-sm"></div><div class="bg-white"></div><div class="bg-black rounded-sm"></div><div class="bg-black rounded-sm"></div><div class="bg-white"></div><div class="bg-black rounded-sm"></div>
+<div class="bg-white"></div><div class="bg-black rounded-sm"></div><div class="bg-primary rounded-sm"></div><div class="bg-primary rounded-sm"></div><div class="bg-black rounded-sm"></div><div class="bg-white"></div>
+<div class="bg-black rounded-sm"></div><div class="bg-white"></div><div class="bg-primary rounded-sm"></div><div class="bg-primary rounded-sm"></div><div class="bg-white"></div><div class="bg-black rounded-sm"></div>
+<div class="bg-black rounded-sm"></div><div class="bg-black rounded-sm"></div><div class="bg-white"></div><div class="bg-black rounded-sm"></div><div class="bg-black rounded-sm"></div><div class="bg-black rounded-sm"></div>
+<div class="bg-black rounded-sm"></div><div class="bg-white"></div><div class="bg-black rounded-sm"></div><div class="bg-white"></div><div class="bg-black rounded-sm"></div><div class="bg-black rounded-sm"></div>
+</div>
+</div>
+<div class="text-[10px] font-mono text-on-surface-variant mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-primary">nfc</span>
+<span>NFC-ENABLED: TAP AT DOWNTOWN TURNSTILE</span>
+</div>
+</div>
+<!-- Expiry Progress -->
+<div class="space-y-1.5 pt-2">
+<div class="flex justify-between text-xs">
+<span class="font-bold text-secondary" id="member-expiry-text">Expires in 3 days</span>
+<span class="font-mono text-on-surface-variant">177 / 180 Days</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" id="member-progress-bar" style="width: 98%;"></div>
+</div>
+</div>
+<!-- Instant Renewal CTA -->
+<button class="w-full mt-5 py-3 bg-secondary text-white font-bold text-xs rounded-lg hover:bg-primary transition-all flex items-center justify-center gap-2" onclick="openPaymentModal('Premium Conditioning Renewal', 3500, 'Pass Extension for Rahul Sharma')">
+<span class="material-symbols-outlined text-base">bolt</span>
+<span>1-TAP RENEW PASS (₹3,500 + GST)</span>
+</button>
+</div>
+<!-- Coach and Perks -->
+<div class="lg:col-span-7 space-y-4">
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm text-center">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Locker</span>
+<div class="text-xl font-headline font-extrabold text-on-surface mt-1">#42</div>
+<div class="text-[10px] text-emerald-700 font-bold">RFID Paired</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm text-center">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Check-Ins</span>
+<div class="text-xl font-headline font-extrabold text-primary mt-1" id="member-checkin-count">142</div>
+<div class="text-[10px] text-on-surface-variant">4.2x / week</div>
+</div>
+<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm text-center">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Cryo Sessions</span>
+<div class="text-xl font-headline font-extrabold text-on-surface mt-1">4 Left</div>
+<div class="text-[10px] text-on-surface-variant">Active tier</div>
+</div>
+</div>
+<!-- Assigned Coach Module -->
+<div class="bg-white rounded-xl border border-outline-variant p-5 shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-lg">
+                    VR
+                  </div>
+<div>
+<span class="text-[10px] font-bold text-primary uppercase">Assigned Master Coach</span>
+<h4 class="font-headline font-bold text-sm text-on-surface">Vikram Rajput</h4>
+<p class="text-xs text-on-surface-variant">Olympic Lifting &amp; Biomechanical Adaptation</p>
+</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all" onclick="alert('Connecting to Coach Vikram on Warrior Encrypted Chat...')">
+                  Direct Chat
+                </button>
+</div>
+</div>
+<!-- Receipts & Invoices -->
+<div class="bg-white rounded-xl border border-outline-variant p-5 shadow-sm">
+<h4 class="font-headline font-bold text-xs uppercase text-on-surface mb-3">Billing &amp; Tax Receipts</h4>
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-outline-variant text-xs">
+<div>
+<div class="font-bold text-on-surface">Premium Conditioning (6 Months)</div>
+<div class="text-on-surface-variant text-[11px]">Paid ₹4,130 (includes 18% GST)</div>
+</div>
+<button class="px-3 py-1.5 rounded border border-outline-variant text-xs font-semibold hover:border-primary transition-all flex items-center gap-1" onclick="alert('Downloading Official GST Statement (PDF)...')">
+<span class="material-symbols-outlined text-sm">download</span>
+<span>Invoice PDF</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- COMPREHENSIVE INTERACTIVE PAYMENT MODAL & CHECKOUT GATEWAY                -->
+<!-- ========================================================================= -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 hidden" id="payment-modal">
+<div class="bg-white rounded-2xl border border-outline-variant shadow-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto">
+<!-- Header -->
+<div class="sticky top-0 bg-white/95 backdrop-blur border-b border-outline-variant px-6 py-4 flex items-center justify-between z-10">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-primary-container text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">credit_card</span>
+</div>
+<div>
+<h3 class="font-headline font-extrabold text-base text-on-surface">Warrior Secure Payment Gateway</h3>
+<p class="text-xs text-on-surface-variant">256-Bit SSL Encrypted Instant Turnstile Provisioning</p>
+</div>
+</div>
+<button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors" onclick="closePaymentModal()">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</div>
+<div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Plan Summary (5 cols) -->
+<div class="lg:col-span-5 space-y-4">
+<div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant space-y-3">
+<div class="flex justify-between items-center pb-2 border-b border-outline-variant text-xs">
+<span class="font-bold text-primary uppercase text-[10px]">Plan Summary</span>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Instant RFID Pass</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-base text-on-surface" id="checkout-plan-name">Premium Conditioning</h4>
+<p class="text-xs text-on-surface-variant mt-0.5" id="checkout-plan-desc">6 Months Unlimited Access with Assigned Coach</p>
+</div>
+<!-- Price Breakdown -->
+<div class="space-y-1.5 text-xs pt-2 border-t border-outline-variant">
+<div class="flex justify-between text-on-surface-variant">
+<span>Base Plan Price:</span>
+<span class="font-bold text-on-surface" id="checkout-base-price">₹3,500.00</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Sports GST (18%):</span>
+<span class="font-bold text-on-surface" id="checkout-gst-price">₹630.00</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>RFID Activation Fee:</span>
+<span class="font-bold text-emerald-700">WAIVED (₹0.00)</span>
+</div>
+<div class="flex justify-between text-sm font-extrabold text-on-surface pt-2 border-t border-outline-variant">
+<span>Total Amount Due:</span>
+<span class="text-primary font-headline text-base font-extrabold" id="checkout-total-price">₹4,130.00</span>
+</div>
+</div>
+</div>
+<!-- Customer Details Input in Checkout -->
+<div class="p-4 rounded-xl bg-white border border-outline-variant space-y-3">
+<span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block">Athlete / Payer Info</span>
+<div>
+<label class="block text-[11px] font-bold text-on-surface mb-0.5">Full Name</label>
+<input class="w-full px-3 py-1.5 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" id="checkout-name" type="text" value="Rahul Sharma"/>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div>
+<label class="block text-[11px] font-bold text-on-surface mb-0.5">Phone Number</label>
+<input class="w-full px-3 py-1.5 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" id="checkout-phone" type="tel" value="+91 98450 11234"/>
+</div>
+<div>
+<label class="block text-[11px] font-bold text-on-surface mb-0.5">Email for Receipt</label>
+<input class="w-full px-3 py-1.5 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" id="checkout-email" type="email" value="rahul@warriorfitness.com"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Interactive Payment Methods (7 cols) -->
+<div class="lg:col-span-7 space-y-4">
+<!-- Payment Method Tabs -->
+<div class="flex rounded-lg bg-surface-container-low p-1 border border-outline-variant text-xs font-bold">
+<button class="pay-method-tab flex-1 py-2 rounded-md bg-white text-primary shadow-sm flex items-center justify-center gap-1" id="pay-tab-upi" onclick="switchPayMethod('upi')">
+<span class="material-symbols-outlined text-sm">qr_code_scanner</span>
+<span>UPI Instant</span>
+</button>
+<button class="pay-method-tab flex-1 py-2 rounded-md text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-1" id="pay-tab-card" onclick="switchPayMethod('card')">
+<span class="material-symbols-outlined text-sm">credit_card</span>
+<span>Card</span>
+</button>
+<button class="pay-method-tab flex-1 py-2 rounded-md text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-1" id="pay-tab-netbanking" onclick="switchPayMethod('netbanking')">
+<span class="material-symbols-outlined text-sm">account_balance</span>
+<span>Net Banking</span>
+</button>
+<button class="pay-method-tab flex-1 py-2 rounded-md text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-1" id="pay-tab-cash" onclick="switchPayMethod('cash')">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span>Cash POS</span>
+</button>
+</div>
+<!-- TAB 1: UPI PAYMENT -->
+<div class="pay-method-panel block space-y-4" id="method-panel-upi">
+<div class="p-5 rounded-xl bg-surface-container-low border border-outline-variant flex flex-col sm:flex-row items-center gap-5">
+<div class="w-32 h-32 bg-white p-2 rounded-lg border border-outline-variant shadow-inner flex flex-col items-center justify-center relative shrink-0">
+<div class="laser-line"></div>
+<!-- Mini QR Matrix -->
+<div class="grid grid-cols-5 gap-1 w-24 h-24">
+<div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div>
+<div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div>
+<div class="bg-white"></div><div class="bg-black"></div><div class="bg-primary"></div><div class="bg-primary"></div><div class="bg-black"></div>
+<div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div>
+<div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div>
+</div>
+</div>
+<div class="text-center sm:text-left space-y-1">
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">ZERO CONVENIENCE FEE</span>
+<div class="font-headline font-bold text-sm text-on-surface">Scan with Google Pay, PhonePe or Paytm</div>
+<div class="text-xs text-on-surface-variant">Instant sub-second payment clearance &amp; turnstile pass provisioning.</div>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">Or Enter Virtual Payment Address (UPI VPA)</label>
+<div class="flex gap-2">
+<input class="flex-1 px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono focus:border-primary focus:outline-none" id="upi-vpa-input" type="text" value="rahul@okhdfcbank"/>
+<button class="px-3 py-2 rounded-lg bg-surface-container border border-outline-variant text-xs font-bold hover:border-primary" onclick="alert('VPA Verified: Rahul Sharma (HDFC Bank)')">Verify</button>
+</div>
+</div>
+</div>
+<!-- TAB 2: CREDIT / DEBIT CARD -->
+<div class="pay-method-panel hidden space-y-3" id="method-panel-card">
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">Card Number</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-base">credit_card</span>
+<input class="w-full pl-9 pr-14 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono focus:border-primary focus:outline-none" maxlength="19" type="text" value="4532 8821 9920 4018"/>
+<span class="absolute right-3 top-2.5 text-[10px] font-bold text-primary">VISA</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">Expiry Date</label>
+<input class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono focus:border-primary focus:outline-none" placeholder="MM/YY" type="text" value="08/28"/>
+</div>
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">CVV</label>
+<input class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono focus:border-primary focus:outline-none" maxlength="4" type="password" value="882"/>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-on-surface mb-1">Cardholder Name</label>
+<input class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-medium focus:border-primary focus:outline-none" type="text" value="Rahul Sharma"/>
+</div>
+</div>
+<!-- TAB 3: NET BANKING -->
+<div class="pay-method-panel hidden space-y-3" id="method-panel-netbanking">
+<span class="text-xs font-bold text-on-surface block">Choose Popular Bank</span>
+<div class="grid grid-cols-4 gap-2 text-center text-xs">
+<button class="p-2.5 rounded-lg border-2 border-primary bg-surface-container-low font-bold text-primary">HDFC</button>
+<button class="p-2.5 rounded-lg border border-outline-variant font-bold text-on-surface hover:border-primary">ICICI</button>
+<button class="p-2.5 rounded-lg border border-outline-variant font-bold text-on-surface hover:border-primary">SBI</button>
+<button class="p-2.5 rounded-lg border border-outline-variant font-bold text-on-surface hover:border-primary">Axis</button>
+</div>
+</div>
+<!-- TAB 4: CASH POS -->
+<div class="pay-method-panel hidden space-y-3" id="method-panel-cash">
+<div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant">
+<div class="flex items-center gap-2 text-xs font-bold text-on-surface">
+<span class="material-symbols-outlined text-primary">point_of_sale</span>
+<span>Desk Cash Collection (Staff Operator: Karan Verma)</span>
+</div>
+<div class="mt-2 text-xs text-on-surface-variant">Collect cash at the counter and mark transaction completed. Pass activates automatically.</div>
+</div>
+</div>
+<!-- Processing Animation Container -->
+<div class="hidden py-4 text-center space-y-2" id="payment-spinner-area">
+<div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+<div class="text-xs font-bold text-on-surface" id="spinner-status-label">Connecting to Payment Gateway...</div>
+</div>
+<!-- Pay Button -->
+<div class="pt-2" id="payment-action-box">
+<button class="w-full py-3.5 bg-primary-container text-white font-headline text-xs font-extrabold rounded-lg shadow-lg hover:bg-primary transition-all flex items-center justify-center gap-2" id="btn-submit-pay" onclick="executePayment()">
+<span class="material-symbols-outlined text-base">lock</span>
+<span id="btn-pay-text">PAY ₹4,130 &amp; ACTIVATE PASS</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- POST-PAYMENT RECEIPT MODAL                                                -->
+<!-- ========================================================================= -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 hidden" id="receipt-modal">
+<div class="bg-white rounded-2xl border-2 border-emerald-500 shadow-2xl w-full max-w-md overflow-hidden">
+<div class="bg-emerald-600 text-white p-5 text-center">
+<div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-2">
+<span class="material-symbols-outlined text-2xl">check_circle</span>
+</div>
+<h3 class="font-headline font-extrabold text-lg">Payment Confirmed &amp; Pass Active!</h3>
+<p class="text-xs text-emerald-100 mt-0.5">Turnstile #04 Access Granted</p>
+</div>
+<div class="p-6 space-y-4">
+<div class="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant space-y-1.5 text-xs font-mono">
+<div class="flex justify-between text-on-surface-variant">
+<span>TRANSACTION ID</span>
+<span class="font-bold text-on-surface" id="receipt-txnid">TXN-WRR-8921849</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>MEMBER NAME</span>
+<span class="font-bold text-on-surface" id="receipt-payer">Rahul Sharma</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>PLAN ACTIVATED</span>
+<span class="font-bold text-primary" id="receipt-plan">Premium Conditioning</span>
+</div>
+<div class="flex justify-between text-on-surface-variant pt-2 border-t border-outline-variant font-bold text-sm">
+<span>TOTAL PAID</span>
+<span class="text-primary font-headline" id="receipt-amount">₹4,130.00</span>
+</div>
+</div>
+<div class="space-y-2">
+<button class="w-full py-3 bg-primary text-white font-bold text-xs rounded-lg hover:bg-primary-container shadow transition-all flex items-center justify-center gap-2" onclick="goToMemberPassFromReceipt()">
+<span class="material-symbols-outlined text-base">badge</span>
+<span>Open Customer Digital Pass</span>
+</button>
+<button class="w-full py-2 rounded-lg border border-outline-variant text-xs font-semibold hover:border-primary transition-all" onclick="closeReceiptModal()">
+              Done
+            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- ========================================================================= -->
+<!-- FOOTER                                                                    -->
+<!-- ========================================================================= -->
+<footer class="bg-surface-container-low border-t border-outline-variant w-full py-8 px-4 lg:px-8 mt-auto">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+<div>
+<span class="font-headline font-bold text-primary text-sm">WARRIOR FITNESS</span>
+<p class="text-on-surface-variant mt-0.5">© 2025 Warrior Fitness Ecosystem Inc. Kinetic Performance Architecture.</p>
+</div>
+<div class="flex items-center gap-6 text-on-surface-variant font-medium">
+<a class="hover:text-primary" href="javascript:void(0)" onclick="switchView('public')">Disciplines</a>
+<a class="hover:text-primary" href="javascript:void(0)" onclick="switchView('owner')">Admin Portal</a>
+<a class="hover:text-primary" href="javascript:void(0)" onclick="switchView('staff')">Staff Access</a>
+<a class="hover:text-primary" href="javascript:void(0)" onclick="switchView('member')">Member Pass</a>
+</div>
+</div>
+</footer>
+<!-- ========================================================================= -->
+<!-- JAVASCRIPT: AUTHENTICATION, VIEW SWITCHING & PAYMENT ENGINE               -->
+<!-- ========================================================================= -->
+<script>
+    // State
+    let currentActiveView = 'public';
+    let currentRoleSelected = 'owner';
+    let activePlan = {
+      name: 'Premium Conditioning',
+      base: 3500,
+      gst: 630,
+      total: 4130,
+      desc: '6 Months Unlimited Access with Assigned Coach'
+    };
+
+    // View Switcher
+    function switchView(viewName) {
+      currentActiveView = viewName;
+
+      // Hide all panels
+      document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+
+      // Show targeted panel
+      const target = document.getElementById('view-' + viewName);
+      if (target) {
+        target.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // Update pills
+      document.querySelectorAll('.view-pill').forEach(pill => {
+        pill.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+        pill.classList.add('bg-white', 'text-on-surface');
+      });
+      const activePill = document.getElementById('pill-' + viewName);
+      if (activePill) {
+        activePill.classList.remove('bg-white', 'text-on-surface');
+        activePill.classList.add('bg-primary', 'text-white', 'shadow-sm');
+      }
+
+      // Update nav links
+      ['public', 'login', 'owner', 'staff', 'member'].forEach(id => {
+        const el = document.getElementById('nav-' + id);
+        if (el) {
+          if (id === viewName) {
+            el.className = 'text-primary border-b-2 border-primary py-2 transition-all';
+          } else {
+            el.className = 'text-on-surface-variant hover:text-on-surface py-2 transition-all';
+          }
+        }
+      });
+    }
+
+    // Role-based Login Logic
+    function setLoginRole(role) {
+      currentRoleSelected = role;
+      const btnOwner = document.getElementById('btn-login-owner');
+      const btnStaff = document.getElementById('btn-login-staff');
+      const btnMember = document.getElementById('btn-login-member');
+      const routeText = document.getElementById('role-route-text');
+
+      [btnOwner, btnStaff, btnMember].forEach(b => {
+        b.className = 'flex-1 py-2 rounded-md text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1';
+      });
+
+      if (role === 'owner') {
+        btnOwner.className = 'flex-1 py-2 rounded-md bg-white text-primary shadow-sm transition-all flex items-center justify-center gap-1';
+        document.getElementById('login-email').value = 'owner@warriorfitness.com';
+        document.getElementById('login-pass').value = 'admin123';
+        routeText.innerHTML = 'Signing in as <strong>Admin / Owner</strong> will directly open the <strong>Owner Executive Hub</strong>.';
+      } else if (role === 'staff') {
+        btnStaff.className = 'flex-1 py-2 rounded-md bg-white text-primary shadow-sm transition-all flex items-center justify-center gap-1';
+        document.getElementById('login-email').value = 'staff@warriorfitness.com';
+        document.getElementById('login-pass').value = 'staff123';
+        routeText.innerHTML = 'Signing in as <strong>Staff</strong> will directly open the <strong>Staff Operations Desk</strong>.';
+      } else if (role === 'member') {
+        btnMember.className = 'flex-1 py-2 rounded-md bg-white text-primary shadow-sm transition-all flex items-center justify-center gap-1';
+        document.getElementById('login-email').value = 'rahul@warriorfitness.com';
+        document.getElementById('login-pass').value = 'member123';
+        routeText.innerHTML = 'Signing in as <strong>Member</strong> will directly open the <strong>Customer Portal & Digital Pass</strong>.';
+      }
+    }
+
+    function fillAndSubmitLogin(email, pass, role) {
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-pass').value = pass;
+      setLoginRole(role);
+      executeLogin(role);
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.toLowerCase().trim();
+
+      if (email.includes('owner') || email.includes('admin') || currentRoleSelected === 'owner') {
+        executeLogin('owner');
+      } else if (email.includes('staff') || currentRoleSelected === 'staff') {
+        executeLogin('staff');
+      } else {
+        executeLogin('member');
+      }
+    }
+
+    function executeLogin(role) {
+      if (role === 'owner') {
+        switchView('owner');
+        document.getElementById('header-auth-label').innerText = 'Admin: Marcus';
+      } else if (role === 'staff') {
+        switchView('staff');
+        document.getElementById('header-auth-label').innerText = 'Staff: Karan';
+      } else {
+        switchView('member');
+        document.getElementById('header-auth-label').innerText = 'Member: Rahul';
+      }
+    }
+
+    function signOut() {
+      document.getElementById('header-auth-label').innerText = 'Role Login';
+      switchView('login');
+    }
+
+    function scrollToPricing() {
+      const el = document.getElementById('pricing-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Payment Gateway Logic
+    function openPaymentModal(planName, basePrice, desc) {
+      const gst = Math.round(basePrice * 0.18);
+      const total = basePrice + gst;
+
+      activePlan = {
+        name: planName,
+        base: basePrice,
+        gst: gst,
+        total: total,
+        desc: desc || 'All-inclusive athletic conditioning and biometric access'
+      };
+
+      document.getElementById('checkout-plan-name').innerText = planName;
+      document.getElementById('checkout-plan-desc').innerText = activePlan.desc;
+      document.getElementById('checkout-base-price').innerText = '₹' + basePrice.toLocaleString('en-IN') + '.00';
+      document.getElementById('checkout-gst-price').innerText = '₹' + gst.toLocaleString('en-IN') + '.00';
+      document.getElementById('checkout-total-price').innerText = '₹' + total.toLocaleString('en-IN') + '.00';
+      document.getElementById('btn-pay-text').innerText = `PAY ₹${total.toLocaleString('en-IN')} & ACTIVATE PASS`;
+
+      document.getElementById('payment-modal').classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('payment-modal').classList.add('hidden');
+      resetPaymentSpinner();
+    }
+
+    function switchPayMethod(method) {
+      document.querySelectorAll('.pay-method-tab').forEach(t => {
+        t.className = 'pay-method-tab flex-1 py-2 rounded-md text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-1';
+      });
+      document.getElementById('pay-tab-' + method).className = 'pay-method-tab flex-1 py-2 rounded-md bg-white text-primary shadow-sm flex items-center justify-center gap-1';
+
+      document.querySelectorAll('.pay-method-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('method-panel-' + method).classList.remove('hidden');
+    }
+
+    function executePayment() {
+      const spinnerArea = document.getElementById('payment-spinner-area');
+      const actionBox = document.getElementById('payment-action-box');
+      const statusLabel = document.getElementById('spinner-status-label');
+
+      actionBox.classList.add('hidden');
+      spinnerArea.classList.remove('hidden');
+
+      setTimeout(() => {
+        statusLabel.innerText = "Authorizing transaction with Bank Gateway & NPCI...";
+      }, 700);
+
+      setTimeout(() => {
+        statusLabel.innerText = "Provisioning Biometrics & Optical Turnstile #04...";
+      }, 1500);
+
+      setTimeout(() => {
+        statusLabel.innerText = "Payment Successful! Generating Tax Receipt & Pass...";
+        setTimeout(() => {
+          finalizePayment();
+        }, 600);
+      }, 2300);
+    }
+
+    function resetPaymentSpinner() {
+      document.getElementById('payment-spinner-area').classList.add('hidden');
+      document.getElementById('payment-action-box').classList.remove('hidden');
+    }
+
+    function finalizePayment() {
+      closePaymentModal();
+
+      const payer = document.getElementById('checkout-name').value || 'Rahul Sharma';
+      const txnId = 'TXN-WRR-' + Math.floor(1000000 + Math.random() * 9000000);
+      const totalDisplay = '₹' + activePlan.total.toLocaleString('en-IN') + '.00';
+
+      document.getElementById('receipt-txnid').innerText = txnId;
+      document.getElementById('receipt-payer').innerText = payer;
+      document.getElementById('receipt-plan').innerText = activePlan.name;
+      document.getElementById('receipt-amount').innerText = totalDisplay;
+
+      // Update Member portal
+      document.getElementById('card-member-name').innerText = payer;
+      document.getElementById('member-heading-name').innerText = 'Welcome Back, ' + payer;
+      document.getElementById('card-member-plan').innerText = 'Plan: ' + activePlan.name + ' (' + totalDisplay + ')';
+      document.getElementById('member-expiry-text').innerText = 'Active (Renews in ' + (activePlan.base >= 6000 ? '365' : '180') + ' days)';
+      const pBar = document.getElementById('member-progress-bar');
+      pBar.style.width = '100%';
+      pBar.className = 'h-full bg-emerald-600 rounded-full';
+
+      // Update Admin revenue
+      const revEl = document.getElementById('admin-kpi-rev');
+      if (revEl) {
+        const cur = parseInt(revEl.innerText.replace(/[^0-9]/g, '')) || 86630;
+        revEl.innerText = '₹' + (cur + activePlan.total).toLocaleString('en-IN');
+      }
+
+      // Add to admin audit log
+      const audit = document.getElementById('admin-audit-log');
+      if (audit) {
+        const item = document.createElement('div');
+        item.className = 'p-2.5 rounded bg-surface-container-low border border-outline-variant';
+        item.innerHTML = `
+          <div class="flex justify-between text-[11px] text-on-surface-variant">
+            <span class="text-emerald-700 font-bold">PAYMENT_CAPTURED</span>
+            <span>Just Now</span>
+          </div>
+          <div class="text-on-surface font-semibold">${payer} paid ${totalDisplay}</div>
+          <div class="text-[10px] text-gray-500">${activePlan.name} • ${txnId}</div>
+        `;
+        audit.prepend(item);
+      }
+
+      // Show receipt modal
+      document.getElementById('receipt-modal').classList.remove('hidden');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receipt-modal').classList.add('hidden');
+    }
+
+    function goToMemberPassFromReceipt() {
+      closeReceiptModal();
+      switchView('member');
+    }
+
+    // Staff actions
+    function setStaffPlan(name, price) {
+      const gst = Math.round(price * 0.18);
+      const total = price + gst;
+      document.getElementById('staff-total-display').innerText = '₹' + total.toLocaleString('en-IN');
+    }
+
+    function handleStaffOnboardSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('staff-name').value;
+      const phone = document.getElementById('staff-phone').value;
+      const email = document.getElementById('staff-email').value;
+      
+      const selectedRadio = document.querySelector('input[name="staff_plan"]:checked');
+      const val = parseInt(selectedRadio ? selectedRadio.value : '3500');
+      let pName = 'Premium Conditioning';
+      if (val === 800) pName = 'Basic Access';
+      if (val === 6000) pName = 'Annual VIP';
+
+      document.getElementById('checkout-name').value = name;
+      document.getElementById('checkout-phone').value = phone;
+      document.getElementById('checkout-email').value = email;
+
+      openPaymentModal(pName, val, 'Staff Desk Enrollment for ' + name);
+    }
+
+    function simulateScan() {
+      alert('Optical Turnstile #04: Biometric RFID QR Tag Validated! Gate Solenoid Actuated: 42ms.');
+      const checkinEl = document.getElementById('member-checkin-count');
+      if (checkinEl) {
+        checkinEl.innerText = parseInt(checkinEl.innerText) + 1;
+      }
+    }
+
+    function emergencyUnlock() {
+      alert('Manual Turnstile Override: All Downtown Hub Turnstile Gates Solenoids Released.');
+    }
+  </script>
+</body>
+</html>
