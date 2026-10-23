@@ -1,0 +1,9 @@
+In src/types/index.ts, change ONLY this line:
+
+FROM:
+export type UserRole = 'OWNER' | 'STAFF' | 'CUSTOMER';
+
+TO:
+export type UserRole = 'OWNER' | 'STAFF' | 'TRAINER' | 'CUSTOMER';
+
+Do not replace the rest of src/types/index.ts.
