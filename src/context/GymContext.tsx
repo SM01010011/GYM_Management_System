@@ -18,6 +18,7 @@ import {
   GymSettings
 } from '../types';
 import { gymStorage } from '../services/storage';
+import { getSupabaseMembers } from '../services/supabaseMembers';
 import { getTodayDateString } from '../utils/dateUtils';
 
 interface GymStats {
@@ -97,8 +98,13 @@ interface GymContextType {
 const GymContext = createContext<GymContextType | undefined>(undefined);
 
 export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [loading, setLoading] = useState(false);
-  const [members, setMembers] = useState<Member[]>(() => gymStorage.getMembers());
+  const [loading, setLoading] = useState(true);
+
+  // Members are now read from Supabase.
+  // Other application data remains on gymStorage temporarily
+  // while we migrate each domain incrementally.
+  const [members, setMembers] = useState<Member[]>([]);
+
   const [memberships, setMemberships] = useState<Membership[]>(() => gymStorage.getMemberships());
   const [plans, setPlans] = useState<MembershipPlan[]>(() => gymStorage.getPlans());
   const [payments, setPayments] = useState<Payment[]>(() => gymStorage.getPayments());
@@ -110,24 +116,39 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [renewalRequests, setRenewalRequests] = useState<RenewalRequest[]>(() => gymStorage.getRenewalRequests());
   const [settings, setSettings] = useState<GymSettings>(() => gymStorage.getSettings());
 
-  const refreshAll = useCallback(() => {
+  const refreshAll = useCallback(async () => {
     setLoading(true);
-    setMembers(gymStorage.getMembers());
-    setMemberships(gymStorage.getMemberships());
-    setPlans(gymStorage.getPlans());
-    setPayments(gymStorage.getPayments());
-    setAttendance(gymStorage.getAttendance());
-    setHistory(gymStorage.getHistory());
-    setStaffList(gymStorage.getStaffPermissions());
-    setActivityLogs(gymStorage.getActivityLogs());
-    setNotifications(gymStorage.getNotifications());
-    setRenewalRequests(gymStorage.getRenewalRequests());
-    setSettings(gymStorage.getSettings());
-    setLoading(false);
+
+    try {
+      // Members now come from the real PostgreSQL database.
+      const supabaseMembers = await getSupabaseMembers();
+      setMembers(supabaseMembers);
+
+      // These domains are intentionally still using local storage.
+      // We will migrate them one at a time.
+      setMemberships(gymStorage.getMemberships());
+      setPlans(gymStorage.getPlans());
+      setPayments(gymStorage.getPayments());
+      setAttendance(gymStorage.getAttendance());
+      setHistory(gymStorage.getHistory());
+      setStaffList(gymStorage.getStaffPermissions());
+      setActivityLogs(gymStorage.getActivityLogs());
+      setNotifications(gymStorage.getNotifications());
+      setRenewalRequests(gymStorage.getRenewalRequests());
+      setSettings(gymStorage.getSettings());
+    } catch (error) {
+      console.error('Failed to load members from Supabase:', error);
+
+      // Do not fall back to fake/seed members.
+      // An empty member list is safer than displaying stale demo data.
+      setMembers([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    refreshAll();
+    void refreshAll();
   }, [refreshAll]);
 
   // Compute live stats from data
@@ -138,10 +159,14 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const expiringMemberships = memberships.filter(m => m.status === 'EXPIRING_SOON');
   const expiredMemberships = memberships.filter(m => m.status === 'EXPIRED');
 
-  const monthlyPayments = payments.filter(p => p.status === 'PAID' && p.paymentDate.startsWith(currentMonthPrefix));
+  const monthlyPayments = payments.filter(
+    p => p.status === 'PAID' && p.paymentDate.startsWith(currentMonthPrefix)
+  );
   const monthlyRevenue = monthlyPayments.reduce((acc, curr) => acc + curr.amount, 0);
 
-  const todayPayments = payments.filter(p => p.status === 'PAID' && p.paymentDate === todayStr);
+  const todayPayments = payments.filter(
+    p => p.status === 'PAID' && p.paymentDate === todayStr
+  );
   const todayRevenue = todayPayments.reduce((acc, curr) => acc + curr.amount, 0);
 
   const todayAttendanceList = attendance.filter(a => a.checkIn.startsWith(todayStr));
@@ -163,36 +188,36 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Actions
   const addMember = (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
     const created = gymStorage.createMember(data);
-    refreshAll();
+    void refreshAll();
     return created;
   };
 
   const updateMember = (id: string, updates: Partial<Member>) => {
     const updated = gymStorage.updateMember(id, updates);
-    refreshAll();
+    void refreshAll();
     return updated;
   };
 
   const toggleMemberStatus = (id: string) => {
     const updated = gymStorage.toggleMemberStatus(id);
-    refreshAll();
+    void refreshAll();
     return updated;
   };
 
   const deleteMember = (id: string) => {
     gymStorage.deleteMember(id);
-    refreshAll();
+    void refreshAll();
   };
 
   const addPlan = (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
     const plan = gymStorage.createPlan(data);
-    refreshAll();
+    void refreshAll();
     return plan;
   };
 
   const updatePlan = (id: string, updates: Partial<MembershipPlan>) => {
     const plan = gymStorage.updatePlan(id, updates);
-    refreshAll();
+    void refreshAll();
     return plan;
   };
 
@@ -205,7 +230,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     performedBy?: string;
   }) => {
     const res = gymStorage.assignMembership(params);
-    refreshAll();
+    void refreshAll();
     return res;
   };
 
@@ -217,82 +242,86 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     performedBy?: string;
   }) => {
     const res = gymStorage.renewMembership(params);
-    refreshAll();
+    void refreshAll();
     return res;
   };
 
   const recordPayment = (data: Omit<Payment, 'id' | 'createdAt'>) => {
     const p = gymStorage.recordPayment(data);
-    refreshAll();
+    void refreshAll();
     return p;
   };
 
   const undoPayment = (paymentIdOrTxn: string, performedBy?: string) => {
     const res = gymStorage.undoPayment(paymentIdOrTxn, performedBy);
-    refreshAll();
+    void refreshAll();
     return res;
   };
 
   const cancelMembership = (membershipId: string, performedBy?: string) => {
     gymStorage.cancelMembership(membershipId, performedBy);
-    refreshAll();
+    void refreshAll();
   };
 
   const checkInMember = (memberId: string, gate?: string, authMethod?: string) => {
     const att = gymStorage.markCheckIn(memberId, gate, 'Staff', authMethod);
-    refreshAll();
+    void refreshAll();
     return att;
   };
 
   const checkOutMember = (attendanceId: string) => {
     const att = gymStorage.markCheckOut(attendanceId);
-    refreshAll();
+    void refreshAll();
     return att;
   };
 
   const updateStaffPermissions = (staffId: string, updates: Partial<StaffPermissions>) => {
     const s = gymStorage.updateStaffPermissions(staffId, updates);
-    refreshAll();
+    void refreshAll();
     return s;
   };
 
   const addStaff = (data: Omit<StaffPermissions, 'updatedAt'>) => {
     const s = gymStorage.addStaff(data);
-    refreshAll();
+    void refreshAll();
     return s;
   };
 
-  const createRenewalRequest = (params: { memberId: string; requestedPlanId: string; notes?: string }) => {
+  const createRenewalRequest = (params: {
+    memberId: string;
+    requestedPlanId: string;
+    notes?: string;
+  }) => {
     const req = gymStorage.createRenewalRequest(params);
-    refreshAll();
+    void refreshAll();
     return req;
   };
 
   const processRenewalRequest = (requestId: string, approved: boolean) => {
     const req = gymStorage.processRenewalRequest(requestId, approved);
-    refreshAll();
+    void refreshAll();
     return req;
   };
 
   const markNotificationAsRead = (id: string) => {
     gymStorage.markNotificationAsRead(id);
-    refreshAll();
+    void refreshAll();
   };
 
   const markAllNotificationsAsRead = () => {
     gymStorage.markAllNotificationsAsRead();
-    refreshAll();
+    void refreshAll();
   };
 
   const updateSettings = (updates: Partial<GymSettings>) => {
     const s = gymStorage.updateSettings(updates);
-    refreshAll();
+    void refreshAll();
     return s;
   };
 
   const resetSeedData = () => {
     gymStorage.resetToSeed();
-    refreshAll();
+    void refreshAll();
   };
 
   return (
