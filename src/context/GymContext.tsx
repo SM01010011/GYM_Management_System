@@ -19,6 +19,10 @@ import {
 } from '../types';
 import { gymStorage } from '../services/storage';
 import { getSupabaseMembers } from '../services/supabaseMembers';
+import {
+  getSupabaseMembershipPlans,
+  getSupabaseMemberships,
+} from '../services/supabaseMemberships';
 import { getTodayDateString } from '../utils/dateUtils';
 
 interface GymStats {
@@ -104,9 +108,8 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Other application data remains on gymStorage temporarily
   // while we migrate each domain incrementally.
   const [members, setMembers] = useState<Member[]>([]);
-
-  const [memberships, setMemberships] = useState<Membership[]>(() => gymStorage.getMemberships());
-  const [plans, setPlans] = useState<MembershipPlan[]>(() => gymStorage.getPlans());
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [payments, setPayments] = useState<Payment[]>(() => gymStorage.getPayments());
   const [attendance, setAttendance] = useState<Attendance[]>(() => gymStorage.getAttendance());
   const [history, setHistory] = useState<MembershipHistory[]>(() => gymStorage.getHistory());
@@ -121,13 +124,16 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     try {
       // Members now come from the real PostgreSQL database.
-      const supabaseMembers = await getSupabaseMembers();
-      setMembers(supabaseMembers);
+      const [supabaseMembers, supabaseMemberships, supabasePlans] =
+        await Promise.all([
+          getSupabaseMembers(),
+          getSupabaseMemberships(),
+          getSupabaseMembershipPlans(),
+        ]);
 
-      // These domains are intentionally still using local storage.
-      // We will migrate them one at a time.
-      setMemberships(gymStorage.getMemberships());
-      setPlans(gymStorage.getPlans());
+      setMembers(supabaseMembers);
+      setMemberships(supabaseMemberships);
+      setPlans(supabasePlans);
       setPayments(gymStorage.getPayments());
       setAttendance(gymStorage.getAttendance());
       setHistory(gymStorage.getHistory());
