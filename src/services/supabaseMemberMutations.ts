@@ -147,6 +147,20 @@ export async function toggleSupabaseMemberStatus(id: string): Promise<Member> {
 }
 
 export async function deleteSupabaseMember(id: string): Promise<void> {
-  const { error } = await supabase.from('members').delete().eq('id', id);
-  if (error) throw new Error(`Unable to delete member: ${error.message}`);
+  const memberId = id.trim();
+
+  if (!memberId) {
+    throw new Error('Member ID is required.');
+  }
+
+  // Members have dependent records (memberships, payments, attendance,
+  // trainer assignments and workout plans). Delete them transactionally in
+  // PostgreSQL so a foreign-key constraint cannot leave a half-deleted member.
+  const { error } = await supabase.rpc('delete_member_cascade', {
+    p_member_id: memberId,
+  });
+
+  if (error) {
+    throw new Error(`Unable to delete member: ${error.message}`);
+  }
 }
