@@ -29,12 +29,23 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
   const [selectedGate, setSelectedGate] = useState('Gate 01 - Main Turnstile');
   const [filterMode, setFilterMode] = useState<'all' | 'inside' | 'checked_out'>('all');
 
-  // Filter members for quick check-in search
-  const matchedMembers = searchQuery.trim() === '' ? [] : members.filter(m => 
-    m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.memberCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.phone.includes(searchQuery)
-  ).slice(0, 5);
+  // Filter members for quick check-in search.
+  // Normalize the display code so both "#M-1234ABCD" and "M-1234ABCD"
+  // work, and normalize phone formatting for front-desk searches.
+  const normalizedQuery = searchQuery.trim().toLowerCase().replace(/^#/, '');
+  const normalizedPhoneQuery = normalizedQuery.replace(/[\\s-]/g, '');
+
+  const matchedMembers = normalizedQuery === '' ? [] : members.filter(m => {
+    const name = m.name.toLowerCase();
+    const memberCode = m.memberCode.toLowerCase().replace(/^#/, '');
+    const phone = m.phone.toLowerCase().replace(/[\\s-]/g, '');
+
+    return (
+      name.includes(normalizedQuery) ||
+      memberCode.includes(normalizedQuery) ||
+      phone.includes(normalizedPhoneQuery)
+    );
+  }).slice(0, 5);
 
   const handleQuickCheckIn = async (memberId: string, memberName: string) => {
     const membership = getMemberActiveMembership(memberId);
@@ -114,7 +125,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
       </div>
 
       {/* Manual Check-in Terminal Card */}
-      <div className="bg-gradient-to-r from-red-50/50 via-white to-[#fff0ee]/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/80 border border-[#ebbbb4]/60 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl relative overflow-hidden transition-colors">
+      <div className="bg-gradient-to-r from-red-50/50 via-white to-[#fff0ee]/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/80 border border-[#ebbbb4]/60 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl relative overflow-visible transition-colors z-20">
         <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/5 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
@@ -142,7 +153,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
 
               {/* Instant Search Results Dropdown */}
               {matchedMembers.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-950 border border-[#ebbbb4] dark:border-slate-700 rounded-xl shadow-2xl p-2 z-30 space-y-1 max-h-72 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-950 border border-[#ebbbb4] dark:border-slate-700 rounded-xl shadow-2xl p-2 z-[100] space-y-1 max-h-72 overflow-y-auto">
                   {matchedMembers.map(m => {
                     const activeMem = getMemberActiveMembership(m.id);
                     const isCheckedIn = attendance.some(a => a.memberId === m.id && !a.checkOut);
