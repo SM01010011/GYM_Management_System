@@ -18,7 +18,7 @@ type CreateMemberInput = {
   joinDate: string;
 };
 
-const displayMemberCode = (id: string) => `#M-${id.slice(0, 8).toUpperCase()}`;
+export const displayMemberCode = (id: string) => `#M-${id.slice(0, 8).toUpperCase()}`;
 
 const mapMember = (row: any): Member => ({
   id: row.id,

@@ -47,7 +47,7 @@ export const StaffDashboard: React.FC = () => {
     ? addDaysToDate(startDate, selectedPlan.durationDays)
     : addDaysToDate(startDate, 30);
 
-  const handleOnboardSubmit = (e: React.FormEvent) => {
+  const handleOnboardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedPlan) {
@@ -56,10 +56,9 @@ export const StaffDashboard: React.FC = () => {
     }
 
     try {
-      // 1. Create Member
-      const memberCode = `#M-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newMember = addMember({
-        memberCode,
+      // 1. Create Member in Supabase
+      const newMember = await addMember({
+        memberCode: '',
         name: fullName,
         phone: mobilePhone,
         email,
@@ -69,8 +68,6 @@ export const StaffDashboard: React.FC = () => {
         emergencyRelation,
         joinDate: startDate,
         status: 'ACTIVE',
-        assignedCoach: 'Vikram Rajput',
-        lockerNumber: String(Math.floor(10 + Math.random() * 80)),
       });
 
       // 2. Assign Membership with Payment
@@ -91,7 +88,7 @@ export const StaffDashboard: React.FC = () => {
 
       showToast(
         'Registration Successful! 🎉',
-        `Member ${fullName} (${memberCode}) enrolled with ${selectedPlan.name}. Pass expires ${formatDisplayDate(calculatedExpiryDate)}.`,
+        `Member ${fullName} (${newMember.memberCode}) enrolled with ${selectedPlan.name}. Pass expires ${formatDisplayDate(calculatedExpiryDate)}.`,
         'success'
       );
 

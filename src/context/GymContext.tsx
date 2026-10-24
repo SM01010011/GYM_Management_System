@@ -20,6 +20,12 @@ import {
 import { gymStorage } from '../services/storage';
 import { getSupabaseMembers } from '../services/supabaseMembers';
 import {
+  createSupabaseMember,
+  updateSupabaseMember,
+  toggleSupabaseMemberStatus,
+  deleteSupabaseMember,
+} from '../services/supabaseMemberMutations';
+import {
   getSupabaseMembershipPlans,
   getSupabaseMemberships,
 } from '../services/supabaseMemberships';
@@ -54,10 +60,10 @@ interface GymContextType {
   refreshAll: () => void;
 
   // Actions
-  addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Member;
-  updateMember: (id: string, updates: Partial<Member>) => Member;
-  toggleMemberStatus: (id: string) => Member;
-  deleteMember: (id: string) => void;
+  addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Member>;
+  updateMember: (id: string, updates: Partial<Member>) => Promise<Member>;
+  toggleMemberStatus: (id: string) => Promise<Member>;
+  deleteMember: (id: string) => Promise<void>;
 
   addPlan: (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => MembershipPlan;
   updatePlan: (id: string, updates: Partial<MembershipPlan>) => MembershipPlan;
@@ -195,27 +201,47 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Actions
-  const addMember = (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const created = gymStorage.createMember(data);
-    void refreshAll();
+  const addMember = async (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const created = await createSupabaseMember({
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
+      address: data.address,
+      emergencyContact: data.emergencyContact,
+      emergencyRelation: data.emergencyRelation,
+      joinDate: data.joinDate,
+    });
+    await refreshAll();
     return created;
   };
 
-  const updateMember = (id: string, updates: Partial<Member>) => {
-    const updated = gymStorage.updateMember(id, updates);
-    void refreshAll();
+  const updateMember = async (id: string, updates: Partial<Member>) => {
+    const updated = await updateSupabaseMember(id, {
+      name: updates.name,
+      phone: updates.phone,
+      email: updates.email,
+      dateOfBirth: updates.dateOfBirth,
+      gender: updates.gender,
+      address: updates.address,
+      emergencyContact: updates.emergencyContact,
+      emergencyRelation: updates.emergencyRelation,
+      joinDate: updates.joinDate,
+    });
+    await refreshAll();
     return updated;
   };
 
-  const toggleMemberStatus = (id: string) => {
-    const updated = gymStorage.toggleMemberStatus(id);
-    void refreshAll();
+  const toggleMemberStatus = async (id: string) => {
+    const updated = await toggleSupabaseMemberStatus(id);
+    await refreshAll();
     return updated;
   };
 
-  const deleteMember = (id: string) => {
-    gymStorage.deleteMember(id);
-    void refreshAll();
+  const deleteMember = async (id: string) => {
+    await deleteSupabaseMember(id);
+    await refreshAll();
   };
 
   const addPlan = (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {

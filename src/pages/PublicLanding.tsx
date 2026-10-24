@@ -72,26 +72,25 @@ export const PublicLanding: React.FC = () => {
       setProcessingStatus('Actuating Optical Turnstile #04 Solenoid Provisioning...');
     }, 1600);
 
-    setTimeout(() => {
-      setIsProcessing(false);
-      setCheckoutModalOpen(false);
+    setTimeout(async () => {
+      try {
+        setIsProcessing(false);
+        setCheckoutModalOpen(false);
 
-      // Check if member already exists, otherwise create
-      let member = members.find(m => m.email.toLowerCase() === checkoutEmail.toLowerCase());
-      if (!member) {
-        member = addMember({
-          memberCode: `#M-${Math.floor(1000 + Math.random() * 9000)}`,
-          name: checkoutName,
-          phone: checkoutPhone,
-          email: checkoutEmail,
-          joinDate: new Date().toISOString().slice(0, 10),
-          status: 'ACTIVE',
-          assignedCoach: 'Vikram Rajput',
-          lockerNumber: '42',
-        });
-      }
+        // Check if member already exists, otherwise create in Supabase
+        let member = members.find(m => m.email.toLowerCase() === checkoutEmail.toLowerCase());
+        if (!member) {
+          member = await addMember({
+            memberCode: '',
+            name: checkoutName,
+            phone: checkoutPhone,
+            email: checkoutEmail,
+            joinDate: new Date().toISOString().slice(0, 10),
+            status: 'ACTIVE',
+          });
+        }
 
-      // Assign Membership
+        // Assign Membership
       const gst = Math.round(selectedPlan.basePrice * 0.18);
       const totalAmount = selectedPlan.basePrice + gst;
       const txnRef = `TXN-WRR-${Math.floor(1000000 + Math.random() * 9000000)}`;
@@ -123,7 +122,11 @@ export const PublicLanding: React.FC = () => {
         membershipId: membership.id,
       });
 
-      showToast('Payment Successful & Pass Active!', `${selectedPlan.name} provisioned for ${checkoutName}.`, 'success');
+        showToast('Payment Successful & Pass Active!', `${selectedPlan.name} provisioned for ${checkoutName}.`, 'success');
+      } catch (err: any) {
+        setIsProcessing(false);
+        showToast('Enrollment Failed', err?.message || 'Unable to complete enrollment.', 'error');
+      }
     }, 2400);
   };
 

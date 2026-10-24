@@ -5,6 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import type { Member } from '../types';
+import { displayMemberCode } from './supabaseMemberMutations';
 
 function mapMemberStatus(status: string): Member['status'] {
   return status === 'active' ? 'ACTIVE' : 'INACTIVE';
@@ -45,7 +46,7 @@ export async function getSupabaseMembers(): Promise<Member[]> {
   return (data ?? []).map((member) => ({
     id: member.id,
     userId: member.user_id ?? undefined,
-    memberCode: '',
+    memberCode: displayMemberCode(member.id),
     name: member.full_name,
     phone: member.phone ?? '',
     email: member.email ?? '',
