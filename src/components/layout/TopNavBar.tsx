@@ -46,11 +46,11 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onQuickAction }) => {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const handleQuickTurnstileTap = () => {
+  const handleQuickTurnstileTap = async () => {
     const rahul = members.find(m => m.id === 'mem-1042') || members[0];
     if (rahul) {
       try {
-        checkInMember(rahul.id, 'Turnstile Gate #04 (Downtown HQ)', 'Optical Dynamic QR');
+        await checkInMember(rahul.id, 'Turnstile Gate #04 (Downtown HQ)', 'Optical Dynamic QR');
         showToast('Optical Turnstile #04 Actuated!', `Access GRANTED for ${rahul.name} (#M-1042). Gate solenoid opened: 44ms.`, 'success');
       } catch (err: any) {
         showToast('Turnstile Tap Event', err.message || 'Already checked in', 'info');

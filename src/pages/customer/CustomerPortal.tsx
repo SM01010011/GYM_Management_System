@@ -74,13 +74,13 @@ export const CustomerPortal: React.FC = () => {
     }
   };
 
-  const handleTurnstileGateTap = () => {
+  const handleTurnstileGateTap = async () => {
     if (!member) {
       showToast('Access Error', 'No active member pass found.', 'error');
       return;
     }
     try {
-      checkInMember(member.id, 'Turnstile Gate A (Midtown Hub)', 'Digital Member QR');
+      await checkInMember(member.id, 'Turnstile Gate A (Midtown Hub)', 'Digital Member QR');
       showToast('Optical Turnstile Unlocked!', 'Access GRANTED: Solenoid released for 6.0 seconds.', 'success');
     } catch (err: any) {
       showToast('Turnstile Access', err.message, 'info');

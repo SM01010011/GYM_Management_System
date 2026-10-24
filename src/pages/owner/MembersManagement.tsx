@@ -136,63 +136,53 @@ export const MembersManagement: React.FC = () => {
     setEditMemberModalOpen(true);
   };
 
-  const handleSaveAdd = async (e: React.FormEvent) => {
+  const handleSaveAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formPhone.trim()) {
       showToast('Validation Error', 'Name and phone are required.', 'error');
       return;
     }
+    const memberCode = `#M-${Math.floor(1000 + Math.random() * 9000)}`;
+    const created = addMember({
+      memberCode,
+      name: formName,
+      phone: formPhone,
+      email: formEmail,
+      gender: formGender,
+      dateOfBirth: formDob,
+      emergencyContact: formEmergency,
+      address: formAddress,
+      joinDate: new Date().toISOString().slice(0, 10),
+      status: 'ACTIVE',
+      assignedCoach: 'Vikram Rajput',
+      lockerNumber: String(Math.floor(10 + Math.random() * 80)),
+    });
 
-    try {
-      const created = await addMember({
-        memberCode: '',
-        name: formName,
-        phone: formPhone,
-        email: formEmail,
-        gender: formGender,
-        dateOfBirth: formDob,
-        emergencyContact: formEmergency,
-        address: formAddress,
-        joinDate: new Date().toISOString().slice(0, 10),
-        status: 'ACTIVE',
-      });
-
-      setAddMemberModalOpen(false);
-      showToast('Member Enrolled! 🎉', `${created.name} registered with ${created.memberCode}.`, 'success');
-    } catch (err: any) {
-      showToast('Member Creation Failed', err?.message || 'Unable to create member.', 'error');
-    }
+    setAddMemberModalOpen(false);
+    showToast('Member Enrolled! 🎉', `${created.name} registered with ${memberCode}.`, 'success');
   };
 
-  const handleSaveEdit = async (e: React.FormEvent) => {
+  const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
-    try {
-      await updateMember(editingMember.id, {
-        name: formName,
-        phone: formPhone,
-        email: formEmail,
-        gender: formGender,
-        dateOfBirth: formDob,
-        emergencyContact: formEmergency,
-        address: formAddress,
-      });
-      setEditMemberModalOpen(false);
-      showToast('Member Updated', `Saved profile details for ${formName}.`, 'success');
-    } catch (err: any) {
-      showToast('Update Failed', err?.message || 'Unable to update member.', 'error');
-    }
+    updateMember(editingMember.id, {
+      name: formName,
+      phone: formPhone,
+      email: formEmail,
+      gender: formGender,
+      dateOfBirth: formDob,
+      emergencyContact: formEmergency,
+      address: formAddress,
+    });
+    setEditMemberModalOpen(false);
+    showToast('Member Updated', `Saved profile details for ${formName}.`, 'success');
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     if (!deleteConfirmMember) return;
-    try {
-      await deleteMember(deleteConfirmMember.id);
-      showToast('Member Deleted', `Permanently removed ${deleteConfirmMember.name}.`, 'warning');
-      setDeleteConfirmMember(null);
-    } catch (err: any) {
-      showToast('Delete Failed', err?.message || 'Unable to delete member.', 'error');
-    }
+    deleteMember(deleteConfirmMember.id);
+    showToast('Member Deleted', `Permanently removed ${deleteConfirmMember.name}.`, 'warning');
+    setDeleteConfirmMember(null);
   };
 
   return (
@@ -522,21 +512,17 @@ export const MembersManagement: React.FC = () => {
           });
           showToast('Payment Recorded', `₹3,500 recorded for ${m.name}.`, 'success');
         }}
-        onMarkAttendance={m => {
+        onMarkAttendance={async m => {
           try {
-            checkInMember(m.id);
+            await checkInMember(m.id);
             showToast('Check-In Successful', `${m.name} checked in at turnstile gate.`, 'success');
           } catch (err: any) {
             showToast('Attendance', err.message, 'info');
           }
         }}
-        onToggleStatus={async m => {
-          try {
-            await toggleMemberStatus(m.id);
-            showToast('Status Updated', `Updated status for ${m.name}.`, 'info');
-          } catch (err: any) {
-            showToast('Status Update Failed', err?.message || 'Unable to update member status.', 'error');
-          }
+        onToggleStatus={m => {
+          toggleMemberStatus(m.id);
+          showToast('Status Updated', `Updated status for ${m.name}.`, 'info');
         }}
       />
 

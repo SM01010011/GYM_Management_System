@@ -36,7 +36,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
     m.phone.includes(searchQuery)
   ).slice(0, 5);
 
-  const handleQuickCheckIn = (memberId: string, memberName: string) => {
+  const handleQuickCheckIn = async (memberId: string, memberName: string) => {
     const membership = getMemberActiveMembership(memberId);
     if (!membership || membership.status === 'EXPIRED') {
       addToast(
@@ -47,7 +47,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
     }
 
     try {
-      const att = checkInMember(memberId, selectedGate);
+      const att = await checkInMember(memberId, selectedGate);
       if (att) {
         addToast(`Turnstile Unlocked! ${memberName} checked in successfully.`, 'success');
         setSearchQuery('');
@@ -57,9 +57,9 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
     }
   };
 
-  const handleCheckOut = (recordId: string, memberName: string) => {
+  const handleCheckOut = async (recordId: string, memberName: string) => {
     try {
-      checkOutMember(recordId);
+      await checkOutMember(recordId);
       addToast(`${memberName} checked out successfully.`, 'info');
     } catch (err: any) {
       addToast(err.message || 'Error checking out', 'error');
@@ -285,7 +285,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
             <thead>
               <tr className="border-b border-[#ebbbb4]/30 dark:border-slate-800 bg-[#fff0ee]/60 dark:bg-slate-950/40 text-[11px] font-mono uppercase text-[#603e39] dark:text-slate-400 tracking-wider">
                 <th className="py-3 px-6">Member</th>
-                <th className="py-3 px-6">Access Gate</th>
+                <th className="py-3 px-6">Attendance Source</th>
                 <th className="py-3 px-6">Check In Time</th>
                 <th className="py-3 px-6">Check Out Time</th>
                 <th className="py-3 px-6">Session Duration</th>
@@ -329,7 +329,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
                         </div>
                       </td>
                       <td className="py-4 px-6 font-mono text-xs text-gray-600 dark:text-slate-300">
-                        {rec.gate || 'Gate 01'}
+                        {rec.gate || 'Supabase'}
                       </td>
                       <td className="py-4 px-6">
                         <div className="font-mono text-xs text-[#2b1613] dark:text-white">

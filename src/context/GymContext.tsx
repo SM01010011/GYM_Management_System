@@ -20,15 +20,14 @@ import {
 import { gymStorage } from '../services/storage';
 import { getSupabaseMembers } from '../services/supabaseMembers';
 import {
-  createSupabaseMember,
-  updateSupabaseMember,
-  toggleSupabaseMemberStatus,
-  deleteSupabaseMember,
-} from '../services/supabaseMemberMutations';
-import {
   getSupabaseMembershipPlans,
   getSupabaseMemberships,
 } from '../services/supabaseMemberships';
+import {
+  getSupabaseAttendance,
+  checkInMemberSupabase,
+  checkOutMemberSupabase,
+} from '../services/supabaseAttendance';
 import { getTodayDateString } from '../utils/dateUtils';
 
 interface GymStats {
@@ -60,10 +59,10 @@ interface GymContextType {
   refreshAll: () => void;
 
   // Actions
-  addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Member>;
-  updateMember: (id: string, updates: Partial<Member>) => Promise<Member>;
-  toggleMemberStatus: (id: string) => Promise<Member>;
-  deleteMember: (id: string) => Promise<void>;
+  addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Member;
+  updateMember: (id: string, updates: Partial<Member>) => Member;
+  toggleMemberStatus: (id: string) => Member;
+  deleteMember: (id: string) => void;
 
   addPlan: (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => MembershipPlan;
   updatePlan: (id: string, updates: Partial<MembershipPlan>) => MembershipPlan;
@@ -89,8 +88,8 @@ interface GymContextType {
   undoPayment: (paymentIdOrTxn: string, performedBy?: string) => { success: boolean; message: string };
   cancelMembership: (membershipId: string, performedBy?: string) => void;
 
-  checkInMember: (memberId: string, gate?: string, authMethod?: string) => Attendance;
-  checkOutMember: (attendanceId: string) => Attendance;
+  checkInMember: (memberId: string, gate?: string, authMethod?: string) => Promise<Attendance>;
+  checkOutMember: (attendanceId: string) => Promise<Attendance>;
 
   updateStaffPermissions: (staffId: string, updates: Partial<StaffPermissions>) => StaffPermissions;
   addStaff: (data: Omit<StaffPermissions, 'updatedAt'>) => StaffPermissions;
@@ -117,7 +116,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [payments, setPayments] = useState<Payment[]>(() => gymStorage.getPayments());
-  const [attendance, setAttendance] = useState<Attendance[]>(() => gymStorage.getAttendance());
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [history, setHistory] = useState<MembershipHistory[]>(() => gymStorage.getHistory());
   const [staffList, setStaffList] = useState<StaffPermissions[]>(() => gymStorage.getStaffPermissions());
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(() => gymStorage.getActivityLogs());
@@ -129,35 +128,73 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setLoading(true);
 
     try {
-      // Members now come from the real PostgreSQL database.
-      const [supabaseMembers, supabaseMemberships, supabasePlans] =
-        await Promise.all([
-          getSupabaseMembers(),
-          getSupabaseMemberships(),
-          getSupabaseMembershipPlans(),
-        ]);
+      const [
+        membersResult,
+        membershipsResult,
+        plansResult,
+        attendanceResult,
+      ] = await Promise.allSettled([
+        getSupabaseMembers(),
+        getSupabaseMemberships(),
+        getSupabaseMembershipPlans(),
+        getSupabaseAttendance(),
+      ]);
 
-      setMembers(supabaseMembers);
-      setMemberships(supabaseMemberships);
-      setPlans(supabasePlans);
+      const loadedMembers =
+        membersResult.status === 'fulfilled' ? membersResult.value : [];
+
+      if (membersResult.status === 'fulfilled') {
+        setMembers(loadedMembers);
+      } else {
+        console.error('Failed to load members from Supabase:', membersResult.reason);
+      }
+
+      if (membershipsResult.status === 'fulfilled') {
+        setMemberships(membershipsResult.value);
+      } else {
+        console.error('Failed to load memberships from Supabase:', membershipsResult.reason);
+      }
+
+      if (plansResult.status === 'fulfilled') {
+        setPlans(plansResult.value);
+      } else {
+        console.error('Failed to load membership plans from Supabase:', plansResult.reason);
+      }
+
+      if (attendanceResult.status === 'fulfilled') {
+        const memberMap = new Map(loadedMembers.map(member => [member.id, member]));
+
+        setAttendance(
+          attendanceResult.value.map(record => {
+            const member = memberMap.get(record.member_id);
+
+            return {
+              id: record.id,
+              memberId: record.member_id,
+              memberName: member?.name ?? 'Unknown member',
+              memberCode: member?.memberCode ?? `#${record.member_id.slice(0, 8)}`,
+              checkIn: record.checked_in_at,
+              ...(record.checked_out_at ? { checkOut: record.checked_out_at } : {}),
+              markedBy: record.recorded_by ?? 'Staff',
+              gate: 'Supabase attendance',
+              status: record.checked_out_at ? 'CHECKED_OUT' : 'CHECKED_IN',
+              createdAt: record.created_at,
+            };
+          })
+        );
+      } else {
+        console.error('Failed to load attendance from Supabase:', attendanceResult.reason);
+      }
+
+      // Domains not yet migrated remain on the local compatibility layer.
       setPayments(gymStorage.getPayments());
-      setAttendance(gymStorage.getAttendance());
       setHistory(gymStorage.getHistory());
       setStaffList(gymStorage.getStaffPermissions());
       setActivityLogs(gymStorage.getActivityLogs());
       setNotifications(gymStorage.getNotifications());
       setRenewalRequests(gymStorage.getRenewalRequests());
       setSettings(gymStorage.getSettings());
-    } catch (error) {
-      console.error('Failed to load Supabase data:', error);
-
-      //Do not fall back to fake/seed members or memberships.
-      // An empty result is safer than displaying stale demo data.
-      setMembers([]);
-      setMemberships([]);
-      setPlans([]);
     } finally {
-
       setLoading(false);
     }
   }, []);
@@ -201,47 +238,27 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Actions
-  const addMember = async (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const created = await createSupabaseMember({
-      name: data.name,
-      phone: data.phone,
-      email: data.email,
-      dateOfBirth: data.dateOfBirth,
-      gender: data.gender,
-      address: data.address,
-      emergencyContact: data.emergencyContact,
-      emergencyRelation: data.emergencyRelation,
-      joinDate: data.joinDate,
-    });
-    await refreshAll();
+  const addMember = (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const created = gymStorage.createMember(data);
+    void refreshAll();
     return created;
   };
 
-  const updateMember = async (id: string, updates: Partial<Member>) => {
-    const updated = await updateSupabaseMember(id, {
-      name: updates.name,
-      phone: updates.phone,
-      email: updates.email,
-      dateOfBirth: updates.dateOfBirth,
-      gender: updates.gender,
-      address: updates.address,
-      emergencyContact: updates.emergencyContact,
-      emergencyRelation: updates.emergencyRelation,
-      joinDate: updates.joinDate,
-    });
-    await refreshAll();
+  const updateMember = (id: string, updates: Partial<Member>) => {
+    const updated = gymStorage.updateMember(id, updates);
+    void refreshAll();
     return updated;
   };
 
-  const toggleMemberStatus = async (id: string) => {
-    const updated = await toggleSupabaseMemberStatus(id);
-    await refreshAll();
+  const toggleMemberStatus = (id: string) => {
+    const updated = gymStorage.toggleMemberStatus(id);
+    void refreshAll();
     return updated;
   };
 
-  const deleteMember = async (id: string) => {
-    await deleteSupabaseMember(id);
-    await refreshAll();
+  const deleteMember = (id: string) => {
+    gymStorage.deleteMember(id);
+    void refreshAll();
   };
 
   const addPlan = (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -298,16 +315,44 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     void refreshAll();
   };
 
-  const checkInMember = (memberId: string, gate?: string, authMethod?: string) => {
-    const att = gymStorage.markCheckIn(memberId, gate, 'Staff', authMethod);
-    void refreshAll();
-    return att;
+  const checkInMember = async (memberId: string, gate?: string, _authMethod?: string) => {
+    const created = await checkInMemberSupabase({ memberId });
+    await refreshAll();
+
+    const member = members.find(m => m.id === created.member_id);
+
+    return {
+      id: created.id,
+      memberId: created.member_id,
+      memberName: member?.name ?? 'Unknown member',
+      memberCode: member?.memberCode ?? `#${created.member_id.slice(0, 8)}`,
+      checkIn: created.checked_in_at,
+      ...(created.checked_out_at ? { checkOut: created.checked_out_at } : {}),
+      markedBy: created.recorded_by ?? 'Staff',
+      gate: gate ?? 'Manual Desk Override',
+      status: created.checked_out_at ? 'CHECKED_OUT' : 'CHECKED_IN',
+      createdAt: created.created_at,
+    };
   };
 
-  const checkOutMember = (attendanceId: string) => {
-    const att = gymStorage.markCheckOut(attendanceId);
-    void refreshAll();
-    return att;
+  const checkOutMember = async (attendanceId: string) => {
+    const updated = await checkOutMemberSupabase(attendanceId);
+    await refreshAll();
+
+    const member = members.find(m => m.id === updated.member_id);
+
+    return {
+      id: updated.id,
+      memberId: updated.member_id,
+      memberName: member?.name ?? 'Unknown member',
+      memberCode: member?.memberCode ?? `#${updated.member_id.slice(0, 8)}`,
+      checkIn: updated.checked_in_at,
+      ...(updated.checked_out_at ? { checkOut: updated.checked_out_at } : {}),
+      markedBy: updated.recorded_by ?? 'Staff',
+      gate: 'Supabase attendance',
+      status: updated.checked_out_at ? 'CHECKED_OUT' : 'CHECKED_IN',
+      createdAt: updated.created_at,
+    };
   };
 
   const updateStaffPermissions = (staffId: string, updates: Partial<StaffPermissions>) => {

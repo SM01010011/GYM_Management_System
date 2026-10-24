@@ -9,10 +9,6 @@ export interface SupabaseAttendanceRecord {
   created_at: string;
 }
 
-export interface CreateAttendanceInput {
-  memberId: string;
-}
-
 export async function getSupabaseAttendance(): Promise<SupabaseAttendanceRecord[]> {
   const { data, error } = await supabase
     .from('attendance')
@@ -27,7 +23,7 @@ export async function getSupabaseAttendance(): Promise<SupabaseAttendanceRecord[
 }
 
 export async function checkInMemberSupabase(
-  input: CreateAttendanceInput
+  input: { memberId: string }
 ): Promise<SupabaseAttendanceRecord> {
   const { data: member, error: memberError } = await supabase
     .from('members')
@@ -60,9 +56,7 @@ export async function checkInMemberSupabase(
 
   const { data, error } = await supabase
     .from('attendance')
-    .insert({
-      member_id: input.memberId,
-    })
+    .insert({ member_id: input.memberId })
     .select('id, member_id, checked_in_at, checked_out_at, recorded_by, created_at')
     .single();
 
@@ -78,9 +72,7 @@ export async function checkOutMemberSupabase(
 ): Promise<SupabaseAttendanceRecord> {
   const { data, error } = await supabase
     .from('attendance')
-    .update({
-      checked_out_at: new Date().toISOString(),
-    })
+    .update({ checked_out_at: new Date().toISOString() })
     .eq('id', attendanceId)
     .is('checked_out_at', null)
     .select('id, member_id, checked_in_at, checked_out_at, recorded_by, created_at')
@@ -91,15 +83,4 @@ export async function checkOutMemberSupabase(
   }
 
   return data;
-}
-
-export async function deleteAttendanceRecord(attendanceId: string): Promise<void> {
-  const { error } = await supabase
-    .from('attendance')
-    .delete()
-    .eq('id', attendanceId);
-
-  if (error) {
-    throw new Error(`Failed to delete attendance: ${error.message}`);
-  }
 }
