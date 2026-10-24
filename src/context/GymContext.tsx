@@ -143,12 +143,15 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setRenewalRequests(gymStorage.getRenewalRequests());
       setSettings(gymStorage.getSettings());
     } catch (error) {
-      console.error('Failed to load members from Supabase:', error);
+      console.error('Failed to load Supabase data:', error);
 
-      // Do not fall back to fake/seed members.
-      // An empty member list is safer than displaying stale demo data.
+      //Do not fall back to fake/seed members or memberships.
+      // An empty result is safer than displaying stale demo data.
       setMembers([]);
+      setMemberships([]);
+      setPlans([]);
     } finally {
+
       setLoading(false);
     }
   }, []);
