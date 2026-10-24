@@ -8,29 +8,16 @@ import type { Membership, MembershipPlan } from '../types';
 
 const EXPIRING_SOON_DAYS = 7;
 
-/**
- * Convert the durable PostgreSQL membership status into the
- * status expected by the existing frontend.
- *
- * "EXPIRING_SOON" is derived from end_date; it is not stored
- * as a separate database status.
- */
 function mapMembershipStatus(
   status: string,
   endDate: string
 ): Membership['status'] {
-  if (status === 'cancelled') {
-    return 'CANCELLED';
-  }
-
-  if (status === 'expired') {
-    return 'EXPIRED';
-  }
+  if (status === 'cancelled') return 'CANCELLED';
+  if (status === 'expired') return 'EXPIRED';
 
   if (status === 'active') {
     const today = new Date();
     const expiry = new Date(`${endDate}T00:00:00`);
-
     const differenceMs = expiry.getTime() - today.getTime();
     const differenceDays = Math.ceil(
       differenceMs / (1000 * 60 * 60 * 24)
@@ -43,16 +30,25 @@ function mapMembershipStatus(
     return 'ACTIVE';
   }
 
-  // The current frontend does not expose a PENDING state.
-  // Do not invent a new frontend state during this migration.
   return 'ACTIVE';
 }
 
-/**
- * Read membership plans from Supabase.
- *
- * READ ONLY. This function never creates, updates, or deletes plans.
- */
+function mapPlan(plan: any): MembershipPlan {
+  return {
+    id: plan.id,
+    name: plan.name,
+    description: plan.description ?? '',
+    durationDays: Number(plan.duration_days),
+    price: Number(plan.price),
+    features: Array.isArray(plan.features) ? plan.features : [],
+    tierBadge: plan.tier_badge ?? undefined,
+    isPopular: Boolean(plan.is_popular),
+    isActive: Boolean(plan.is_active),
+    createdAt: plan.created_at,
+    updatedAt: plan.updated_at,
+  };
+}
+
 export async function getSupabaseMembershipPlans(): Promise<MembershipPlan[]> {
   const { data, error } = await supabase
     .from('membership_plans')
@@ -63,24 +59,78 @@ export async function getSupabaseMembershipPlans(): Promise<MembershipPlan[]> {
     throw new Error(`Unable to load membership plans: ${error.message}`);
   }
 
-  return (data ?? []).map((plan) => ({
-    id: plan.id,
-    name: plan.name,
-    description: plan.description ?? '',
-    durationDays: plan.duration_days,
-    price: Number(plan.price),
-    features: [],
-    isActive: plan.is_active,
-    createdAt: plan.created_at,
-    updatedAt: plan.updated_at,
-  }));
+  return (data ?? []).map(mapPlan);
 }
 
 /**
- * Read memberships together with their related member and plan.
- *
- * READ ONLY. This function never creates, updates, or deletes memberships.
+ * Create a membership plan.
+ * Database RLS is the authorization boundary; only admin may write.
  */
+export async function createSupabaseMembershipPlan(
+  data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<MembershipPlan> {
+  const { data: created, error } = await supabase
+    .from('membership_plans')
+    .insert({
+      name: data.name.trim(),
+      description: data.description?.trim() || null,
+      duration_days: data.durationDays,
+      price: data.price,
+      features: data.features ?? [],
+      tier_badge: data.tierBadge?.trim() || null,
+      is_popular: Boolean(data.isPopular),
+      is_active: Boolean(data.isActive),
+      currency: 'INR',
+    })
+    .select('*')
+    .single();
+
+  if (error) {
+    throw new Error(`Unable to create membership plan: ${error.message}`);
+  }
+
+  return mapPlan(created);
+}
+
+/**
+ * Update a membership plan.
+ * Database RLS is the authorization boundary; only admin may write.
+ */
+export async function updateSupabaseMembershipPlan(
+  id: string,
+  updates: Partial<MembershipPlan>
+): Promise<MembershipPlan> {
+  const payload: Record<string, unknown> = {};
+
+  if (updates.name !== undefined) payload.name = updates.name.trim();
+  if (updates.description !== undefined) {
+    payload.description = updates.description.trim() || null;
+  }
+  if (updates.durationDays !== undefined) {
+    payload.duration_days = updates.durationDays;
+  }
+  if (updates.price !== undefined) payload.price = updates.price;
+  if (updates.features !== undefined) payload.features = updates.features;
+  if (updates.tierBadge !== undefined) {
+    payload.tier_badge = updates.tierBadge?.trim() || null;
+  }
+  if (updates.isPopular !== undefined) payload.is_popular = updates.isPopular;
+  if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+
+  const { data, error } = await supabase
+    .from('membership_plans')
+    .update(payload)
+    .eq('id', id)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw new Error(`Unable to update membership plan: ${error.message}`);
+  }
+
+  return mapPlan(data);
+}
+
 export async function getSupabaseMemberships(): Promise<Membership[]> {
   const { data, error } = await supabase
     .from('memberships')
@@ -128,10 +178,7 @@ export async function getSupabaseMemberships(): Promise<Membership[]> {
       startDate: membership.start_date,
       expiryDate: membership.end_date,
       price: Number(plan?.price ?? 0),
-      status: mapMembershipStatus(
-        membership.status,
-        membership.end_date
-      ),
+      status: mapMembershipStatus(membership.status, membership.end_date),
       createdBy: '',
       createdAt: membership.created_at,
       updatedAt: membership.updated_at,
