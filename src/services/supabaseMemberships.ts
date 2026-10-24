@@ -5,6 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import type { Membership, MembershipPlan } from '../types';
+import { addDaysToDate } from '../utils/dateUtils';
 
 const EXPIRING_SOON_DAYS = 7;
 
@@ -49,6 +50,32 @@ function mapPlan(plan: any): MembershipPlan {
   };
 }
 
+function mapMembershipRow(membership: any): Membership {
+  const member = Array.isArray(membership.members)
+    ? membership.members[0]
+    : membership.members;
+
+  const plan = Array.isArray(membership.membership_plans)
+    ? membership.membership_plans[0]
+    : membership.membership_plans;
+
+  return {
+    id: membership.id,
+    memberId: membership.member_id,
+    memberName: member?.full_name ?? '',
+    memberCode: '',
+    planId: membership.plan_id,
+    planName: plan?.name ?? '',
+    startDate: membership.start_date,
+    expiryDate: membership.end_date,
+    price: Number(plan?.price ?? 0),
+    status: mapMembershipStatus(membership.status, membership.end_date),
+    createdBy: '',
+    createdAt: membership.created_at,
+    updatedAt: membership.updated_at,
+  };
+}
+
 export async function getSupabaseMembershipPlans(): Promise<MembershipPlan[]> {
   const { data, error } = await supabase
     .from('membership_plans')
@@ -62,10 +89,6 @@ export async function getSupabaseMembershipPlans(): Promise<MembershipPlan[]> {
   return (data ?? []).map(mapPlan);
 }
 
-/**
- * Create a membership plan.
- * Database RLS is the authorization boundary; only admin may write.
- */
 export async function createSupabaseMembershipPlan(
   data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<MembershipPlan> {
@@ -92,10 +115,6 @@ export async function createSupabaseMembershipPlan(
   return mapPlan(created);
 }
 
-/**
- * Update a membership plan.
- * Database RLS is the authorization boundary; only admin may write.
- */
 export async function updateSupabaseMembershipPlan(
   id: string,
   updates: Partial<MembershipPlan>
@@ -131,6 +150,86 @@ export async function updateSupabaseMembershipPlan(
   return mapPlan(data);
 }
 
+/**
+ * Assign an existing plan to an existing member.
+ *
+ * Authorization is enforced by the memberships INSERT RLS policy:
+ * only Admin and Staff may create memberships.
+ *
+ * The database exclusion constraint prevents overlapping pending/active
+ * memberships for the same member, including concurrent requests.
+ */
+export async function createSupabaseMembership(params: {
+  memberId: string;
+  planId: string;
+  startDate: string;
+  notes?: string;
+}): Promise<Membership> {
+  if (!params.memberId || !params.planId || !params.startDate) {
+    throw new Error('Member, plan, and start date are required.');
+  }
+
+  const { data: plan, error: planError } = await supabase
+    .from('membership_plans')
+    .select('id, duration_days, is_active')
+    .eq('id', params.planId)
+    .single();
+
+  if (planError) {
+    throw new Error(`Unable to load membership plan: ${planError.message}`);
+  }
+
+  if (!plan.is_active) {
+    throw new Error('This membership plan is inactive and cannot be assigned.');
+  }
+
+  // A 30-day plan starting on Oct 24 covers Oct 24 through Nov 22.
+  const endDate = addDaysToDate(params.startDate, Number(plan.duration_days) - 1);
+
+  const { data: created, error } = await supabase
+    .from('memberships')
+    .insert({
+      member_id: params.memberId,
+      plan_id: params.planId,
+      start_date: params.startDate,
+      end_date: endDate,
+      status: 'active',
+      notes: params.notes?.trim() || null,
+    })
+    .select(`
+      id,
+      member_id,
+      plan_id,
+      start_date,
+      end_date,
+      status,
+      created_at,
+      updated_at,
+      members (
+        id,
+        full_name
+      ),
+      membership_plans (
+        id,
+        name,
+        price
+      )
+    `)
+    .single();
+
+  if (error) {
+    if (error.code === '23P01') {
+      throw new Error(
+        'This member already has an active or pending membership covering those dates.'
+      );
+    }
+
+    throw new Error(`Unable to assign membership: ${error.message}`);
+  }
+
+  return mapMembershipRow(created);
+}
+
 export async function getSupabaseMemberships(): Promise<Membership[]> {
   const { data, error } = await supabase
     .from('memberships')
@@ -159,29 +258,5 @@ export async function getSupabaseMemberships(): Promise<Membership[]> {
     throw new Error(`Unable to load memberships: ${error.message}`);
   }
 
-  return (data ?? []).map((membership) => {
-    const member = Array.isArray(membership.members)
-      ? membership.members[0]
-      : membership.members;
-
-    const plan = Array.isArray(membership.membership_plans)
-      ? membership.membership_plans[0]
-      : membership.membership_plans;
-
-    return {
-      id: membership.id,
-      memberId: membership.member_id,
-      memberName: member?.full_name ?? '',
-      memberCode: '',
-      planId: membership.plan_id,
-      planName: plan?.name ?? '',
-      startDate: membership.start_date,
-      expiryDate: membership.end_date,
-      price: Number(plan?.price ?? 0),
-      status: mapMembershipStatus(membership.status, membership.end_date),
-      createdBy: '',
-      createdAt: membership.created_at,
-      updatedAt: membership.updated_at,
-    };
-  });
+  return (data ?? []).map(mapMembershipRow);
 }
