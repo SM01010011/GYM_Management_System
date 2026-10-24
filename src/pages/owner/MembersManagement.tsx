@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Member, MemberStatus, MembershipStatus } from '../../types';
 import { useGym } from '../../context/GymContext';
 import { formatDisplayDate, getDaysRemaining } from '../../utils/dateUtils';
@@ -214,7 +214,6 @@ export const MembersManagement: React.FC = () => {
 
   const handleDeleteConfirm = () => {
     if (!deleteConfirmMember) return;
-
     const member = deleteConfirmMember;
     deleteMember(member.id);
     setDeleteConfirmMember(null);
@@ -229,7 +228,7 @@ export const MembersManagement: React.FC = () => {
 
     window.addEventListener('warrior:member-delete-error', onDeleteError);
     return () => window.removeEventListener('warrior:member-delete-error', onDeleteError);
-  }, []);
+  }, [showToast]);
 
   return (
     <div className="space-y-6">

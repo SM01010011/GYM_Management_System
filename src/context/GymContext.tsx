@@ -258,7 +258,6 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteMember = (id: string) => {
-    // Members are persisted in Supabase. Do not delete only from local storage.
     void deleteSupabaseMember(id)
       .then(() => refreshAll())
       .catch((error) => {
