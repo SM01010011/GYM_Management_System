@@ -12,13 +12,15 @@ import { AssignMembershipModal } from './AssignMembershipModal';
 import { ConfirmationModal } from '../../components/common/ConfirmationModal';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../components/common/Toast';
+import { createSupabaseMember } from '../../services/supabaseMemberMutations';
+import { provisionMemberAccount } from '../../services/supabaseMemberAccounts';
 
 export const MembersManagement: React.FC = () => {
   const {
     members,
     memberships,
-    addMember,
     updateMember,
+    refreshAll,
     toggleMemberStatus,
     deleteMember,
     renewMembership,
@@ -42,6 +44,8 @@ export const MembersManagement: React.FC = () => {
   const [editMemberModalOpen, setEditMemberModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [addMemberModalOpen, setAddMemberModalOpen] = useState(false);
+  const [loginCredentials, setLoginCredentials] = useState<{ name: string; email: string; password: string } | null>(null);
+  const [provisioningMemberId, setProvisioningMemberId] = useState<string | null>(null);
 
   // Add/Edit Form State
   const [formName, setFormName] = useState('');
@@ -136,30 +140,60 @@ export const MembersManagement: React.FC = () => {
     setEditMemberModalOpen(true);
   };
 
-  const handleSaveAdd = (e: React.FormEvent) => {
+  const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formPhone.trim()) {
       showToast('Validation Error', 'Name and phone are required.', 'error');
       return;
     }
-    const memberCode = `#M-${Math.floor(1000 + Math.random() * 9000)}`;
-    const created = addMember({
-      memberCode,
-      name: formName,
-      phone: formPhone,
-      email: formEmail,
-      gender: formGender,
-      dateOfBirth: formDob,
-      emergencyContact: formEmergency,
-      address: formAddress,
-      joinDate: new Date().toISOString().slice(0, 10),
-      status: 'ACTIVE',
-      assignedCoach: 'Vikram Rajput',
-      lockerNumber: String(Math.floor(10 + Math.random() * 80)),
-    });
+    if (!formEmail.trim()) {
+      showToast('Login Email Required', 'Enter the member email so the system can create their login account.', 'error');
+      return;
+    }
 
-    setAddMemberModalOpen(false);
-    showToast('Member Enrolled! 🎉', `${created.name} registered with ${memberCode}.`, 'success');
+    try {
+      const created = await createSupabaseMember({
+        name: formName,
+        phone: formPhone,
+        email: formEmail,
+        gender: formGender,
+        dateOfBirth: formDob,
+        emergencyContact: formEmergency,
+        address: formAddress,
+        joinDate: new Date().toISOString().slice(0, 10),
+      });
+
+      const credentials = await provisionMemberAccount(created.id);
+      void refreshAll();
+      setAddMemberModalOpen(false);
+      setLoginCredentials({ name: created.name, email: credentials.email, password: credentials.password });
+      showToast('Member + Login Created! 🎉', `${created.name} can now sign in.`, 'success');
+    } catch (err: any) {
+      showToast('Member Creation Failed', err?.message || 'Unable to create member.', 'error');
+    }
+  };
+
+  const handleProvisionLogin = async (member: Member) => {
+    if (member.userId) {
+      showToast('Login Already Exists', `${member.name} already has a linked login account.`, 'info');
+      return;
+    }
+    if (!member.email?.trim()) {
+      showToast('Email Required', 'Add the member email first, then create their login.', 'error');
+      return;
+    }
+
+    try {
+      setProvisioningMemberId(member.id);
+      const credentials = await provisionMemberAccount(member.id);
+      void refreshAll();
+      setLoginCredentials({ name: member.name, email: credentials.email, password: credentials.password });
+      showToast('Login Created', `${member.name} now has a customer login.`, 'success');
+    } catch (err: any) {
+      showToast('Login Creation Failed', err?.message || 'Unable to create login.', 'error');
+    } finally {
+      setProvisioningMemberId(null);
+    }
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -422,6 +456,17 @@ export const MembersManagement: React.FC = () => {
                             <span className="material-symbols-outlined text-lg">autorenew</span>
                           </button>
 
+                          {!member.userId && (
+                            <button
+                              onClick={() => void handleProvisionLogin(member)}
+                              disabled={provisioningMemberId === member.id}
+                              className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50"
+                              title="Create Member Login"
+                            >
+                              <span className="material-symbols-outlined text-lg">key</span>
+                            </button>
+                          )}
+
                           <button
                             onClick={() => handleOpenEdit(member)}
                             className="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-black/5 dark:hover:bg-white/10"
@@ -512,9 +557,9 @@ export const MembersManagement: React.FC = () => {
           });
           showToast('Payment Recorded', `₹3,500 recorded for ${m.name}.`, 'success');
         }}
-        onMarkAttendance={async m => {
+        onMarkAttendance={m => {
           try {
-            await checkInMember(m.id);
+            checkInMember(m.id);
             showToast('Check-In Successful', `${m.name} checked in at turnstile gate.`, 'success');
           } catch (err: any) {
             showToast('Attendance', err.message, 'info');
@@ -543,6 +588,37 @@ export const MembersManagement: React.FC = () => {
         confirmText="Delete Member"
         isDestructive={true}
       />
+
+      {/* One-time member login credentials */}
+      <Modal
+        isOpen={loginCredentials !== null}
+        onClose={() => setLoginCredentials(null)}
+        title="Member Login Created"
+        subtitle="Save these credentials — the generated password is shown only once."
+        icon="key"
+        maxWidth="md"
+      >
+        {loginCredentials && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+              <p className="text-sm font-bold text-gray-900 dark:text-white">{loginCredentials.name}</p>
+              <p className="text-xs text-gray-500 mt-1">Customer account is linked to the member record.</p>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Login Email</label>
+              <div className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 font-mono text-sm">{loginCredentials.email}</div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">System Generated Password</label>
+              <div className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 font-mono text-sm select-all">{loginCredentials.password}</div>
+            </div>
+            <p className="text-[11px] text-amber-600 dark:text-amber-400">Give these credentials to the member securely. The password is not stored in the member table.</p>
+            <div className="flex justify-end pt-2">
+              <button onClick={() => setLoginCredentials(null)} className="px-5 py-2.5 rounded-xl bg-[#bc0100] text-white text-xs font-bold">Done</button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Add / Edit Member Modal */}
       <Modal
@@ -589,10 +665,11 @@ export const MembersManagement: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-                Email Address
+                Email Address {addMemberModalOpen && <span className="text-red-500">*</span>}
               </label>
               <input
                 type="email"
+                required={addMemberModalOpen}
                 value={formEmail}
                 onChange={e => setFormEmail(e.target.value)}
                 placeholder="member@example.com"
