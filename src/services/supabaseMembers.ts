@@ -13,8 +13,10 @@ function mapMemberStatus(status: string): Member['status'] {
 /**
  * Read members from the real Supabase/PostgreSQL members table.
  *
- * This function intentionally performs READ only.
- * No demo/seed/localStorage fallback is used.
+ * READ ONLY:
+ * - No localStorage fallback
+ * - No seed/demo records
+ * - No INSERT/UPDATE/DELETE
  */
 export async function getSupabaseMembers(): Promise<Member[]> {
   const { data, error } = await supabase
