@@ -95,7 +95,7 @@ export const PublicLanding: React.FC = () => {
       const totalAmount = selectedPlan.basePrice + gst;
       const txnRef = `TXN-WRR-${Math.floor(1000000 + Math.random() * 9000000)}`;
 
-      const { membership } = assignMembership({
+      const { membership } = await assignMembership({
         memberId: member.id,
         planId: selectedPlan.planId,
         startDate: new Date().toISOString().slice(0, 10),

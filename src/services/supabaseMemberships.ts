@@ -260,3 +260,71 @@ export async function getSupabaseMemberships(): Promise<Membership[]> {
 
   return (data ?? []).map(mapMembershipRow);
 }
+
+
+export async function renewSupabaseMembership(params: {
+  memberId: string;
+  planId?: string;
+  performedBy?: string;
+}): Promise<Membership> {
+  const current = (await getSupabaseMemberships()).find(
+    membership => membership.memberId === params.memberId &&
+      membership.status !== 'CANCELLED'
+  );
+
+  let planId = params.planId ?? current?.planId;
+  if (!planId) {
+    const plans = await getSupabaseMembershipPlans();
+    planId = plans.find(plan => plan.isActive)?.id;
+  }
+  if (!planId) throw new Error('No active membership plan is available.');
+
+  const { data: plan, error: planError } = await supabase
+    .from('membership_plans')
+    .select('id, duration_days, price, name, is_active')
+    .eq('id', planId)
+    .single();
+
+  if (planError) throw new Error(`Unable to load membership plan: ${planError.message}`);
+  if (!plan.is_active) throw new Error('This membership plan is inactive.');
+
+  const todayString = new Date().toISOString().slice(0, 10);
+  const currentEnd = current ? new Date(`${current.expiryDate}T00:00:00`) : null;
+  const wasActive = Boolean(currentEnd && currentEnd >= new Date(`${todayString}T00:00:00`));
+  const startDate = current && wasActive ? current.startDate : todayString;
+  const endDate = current && wasActive
+    ? addDaysToDate(current.expiryDate, Number(plan.duration_days))
+    : addDaysToDate(startDate, Number(plan.duration_days) - 1);
+
+  if (!current) {
+    return createSupabaseMembership({ memberId: params.memberId, planId, startDate });
+  }
+
+  const { data, error } = await supabase
+    .from('memberships')
+    .update({
+      plan_id: planId,
+      start_date: startDate,
+      end_date: endDate,
+      status: 'active',
+    })
+    .eq('id', current.id)
+    .select(`
+      id, member_id, plan_id, start_date, end_date, status, created_at, updated_at,
+      members (id, full_name),
+      membership_plans (id, name, price)
+    `)
+    .single();
+
+  if (error) throw new Error(`Unable to renew membership: ${error.message}`);
+  return mapMembershipRow(data);
+}
+
+export async function cancelSupabaseMembership(membershipId: string): Promise<void> {
+  const { error } = await supabase
+    .from('memberships')
+    .update({ status: 'cancelled' })
+    .eq('id', membershipId);
+
+  if (error) throw new Error(`Unable to cancel membership: ${error.message}`);
+}

@@ -19,11 +19,23 @@ import {
 } from '../types';
 import { gymStorage } from '../services/storage';
 import { getSupabaseMembers } from '../services/supabaseMembers';
+import {
+  createSupabaseMember,
+  updateSupabaseMember,
+  toggleSupabaseMemberStatus,
+  deleteSupabaseMember,
+} from '../services/supabaseMemberMutations';
 import { deleteSupabaseMember } from '../services/supabaseMemberMutations';
 import {
   getSupabaseMembershipPlans,
   getSupabaseMemberships,
+  createSupabaseMembership,
+  renewSupabaseMembership,
+  cancelSupabaseMembership,
+  createSupabaseMembershipPlan,
+  updateSupabaseMembershipPlan,
 } from '../services/supabaseMemberships';
+import { getSupabasePayments, createSupabasePayment, refundSupabasePayment } from '../services/supabasePayments';
 import {
   getSupabaseAttendance,
   checkInMemberSupabase,
@@ -60,13 +72,13 @@ interface GymContextType {
   refreshAll: () => void;
 
   // Actions
-  addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Member;
-  updateMember: (id: string, updates: Partial<Member>) => Member;
-  toggleMemberStatus: (id: string) => Member;
+  addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Member>;
+  updateMember: (id: string, updates: Partial<Member>) => Promise<Member>;
+  toggleMemberStatus: (id: string) => Promise<Member>;
   deleteMember: (id: string) => void;
 
-  addPlan: (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => MembershipPlan;
-  updatePlan: (id: string, updates: Partial<MembershipPlan>) => MembershipPlan;
+  addPlan: (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => Promise<MembershipPlan>;
+  updatePlan: (id: string, updates: Partial<MembershipPlan>) => Promise<MembershipPlan>;
 
   assignMembership: (params: {
     memberId: string;
@@ -75,7 +87,7 @@ interface GymContextType {
     recordPaymentNow?: boolean;
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
-  }) => { membership: Membership; payment?: Payment };
+  }) => Promise<{ membership: Membership; payment?: Payment }>;
 
   renewMembership: (params: {
     memberId: string;
@@ -83,11 +95,11 @@ interface GymContextType {
     recordPaymentNow?: boolean;
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
-  }) => { membership: Membership; payment?: Payment };
+  }) => Promise<{ membership: Membership; payment?: Payment }>;
 
-  recordPayment: (data: Omit<Payment, 'id' | 'createdAt'>) => Payment;
-  undoPayment: (paymentIdOrTxn: string, performedBy?: string) => { success: boolean; message: string };
-  cancelMembership: (membershipId: string, performedBy?: string) => void;
+  recordPayment: (data: Omit<Payment, 'id' | 'createdAt'>) => Promise<Payment>;
+  undoPayment: (paymentIdOrTxn: string, performedBy?: string) => Promise<{ success: boolean; message: string }>;
+  cancelMembership: (membershipId: string, performedBy?: string) => Promise<void>;
 
   checkInMember: (memberId: string, gate?: string, authMethod?: string) => Promise<Attendance>;
   checkOutMember: (attendanceId: string) => Promise<Attendance>;
@@ -116,7 +128,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [members, setMembers] = useState<Member[]>([]);
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
-  const [payments, setPayments] = useState<Payment[]>(() => gymStorage.getPayments());
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [history, setHistory] = useState<MembershipHistory[]>(() => gymStorage.getHistory());
   const [staffList, setStaffList] = useState<StaffPermissions[]>(() => gymStorage.getStaffPermissions());
@@ -134,11 +146,13 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         membershipsResult,
         plansResult,
         attendanceResult,
+        paymentsResult,
       ] = await Promise.allSettled([
         getSupabaseMembers(),
         getSupabaseMemberships(),
         getSupabaseMembershipPlans(),
         getSupabaseAttendance(),
+        getSupabasePayments(),
       ]);
 
       const loadedMembers =
@@ -187,8 +201,13 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Failed to load attendance from Supabase:', attendanceResult.reason);
       }
 
-      // Domains not yet migrated remain on the local compatibility layer.
-      setPayments(gymStorage.getPayments());
+      if (paymentsResult.status === 'fulfilled') {
+        setPayments(paymentsResult.value);
+      } else {
+        console.error('Failed to load payments from Supabase:', paymentsResult.reason);
+      }
+
+      // Non-core compatibility domains remain on local storage.
       setHistory(gymStorage.getHistory());
       setStaffList(gymStorage.getStaffPermissions());
       setActivityLogs(gymStorage.getActivityLogs());
@@ -238,22 +257,40 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     staffOnDuty,
   };
 
-  // Actions
-  const addMember = (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const created = gymStorage.createMember(data);
-    void refreshAll();
-    return created;
+  // Core business actions use Supabase as the single source of truth.
+  const addMember = async (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
+    return createSupabaseMember({
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
+      address: data.address,
+      emergencyContact: data.emergencyContact,
+      emergencyRelation: data.emergencyRelation,
+      joinDate: data.joinDate,
+    });
   };
 
-  const updateMember = (id: string, updates: Partial<Member>) => {
-    const updated = gymStorage.updateMember(id, updates);
-    void refreshAll();
+  const updateMember = async (id: string, updates: Partial<Member>) => {
+    const updated = await updateSupabaseMember(id, {
+      name: updates.name,
+      phone: updates.phone,
+      email: updates.email,
+      dateOfBirth: updates.dateOfBirth,
+      gender: updates.gender,
+      address: updates.address,
+      emergencyContact: updates.emergencyContact,
+      emergencyRelation: updates.emergencyRelation,
+      joinDate: updates.joinDate,
+    });
+    await refreshAll();
     return updated;
   };
 
-  const toggleMemberStatus = (id: string) => {
-    const updated = gymStorage.toggleMemberStatus(id);
-    void refreshAll();
+  const toggleMemberStatus = async (id: string) => {
+    const updated = await toggleSupabaseMemberStatus(id);
+    await refreshAll();
     return updated;
   };
 
@@ -269,19 +306,19 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
   };
 
-  const addPlan = (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const plan = gymStorage.createPlan(data);
-    void refreshAll();
+  const addPlan = async (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const plan = await createSupabaseMembershipPlan(data);
+    await refreshAll();
     return plan;
   };
 
-  const updatePlan = (id: string, updates: Partial<MembershipPlan>) => {
-    const plan = gymStorage.updatePlan(id, updates);
-    void refreshAll();
+  const updatePlan = async (id: string, updates: Partial<MembershipPlan>) => {
+    const plan = await updateSupabaseMembershipPlan(id, updates);
+    await refreshAll();
     return plan;
   };
 
-  const assignMembership = (params: {
+  const assignMembership = async (params: {
     memberId: string;
     planId: string;
     startDate: string;
@@ -289,38 +326,78 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
   }) => {
-    const res = gymStorage.assignMembership(params);
-    void refreshAll();
-    return res;
+    const membership = await createSupabaseMembership({
+      memberId: params.memberId,
+      planId: params.planId,
+      startDate: params.startDate,
+    });
+
+    let payment: Payment | undefined;
+    if (params.recordPaymentNow) {
+      payment = await createSupabasePayment({
+        memberId: params.memberId,
+        memberName: membership.memberName,
+        memberCode: membership.memberCode,
+        membershipId: membership.id,
+        amount: membership.price,
+        paymentDate: params.startDate,
+        paymentMethod: params.paymentMethod || 'UPI',
+        transactionReference: `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`,
+        status: 'PAID',
+        recordedBy: params.performedBy || 'Staff',
+        notes: `Full payment for ${membership.planName}`,
+      });
+    }
+
+    await refreshAll();
+    return { membership, payment };
   };
 
-  const renewMembership = (params: {
+  const renewMembership = async (params: {
     memberId: string;
     planId?: string;
     recordPaymentNow?: boolean;
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
   }) => {
-    const res = gymStorage.renewMembership(params);
-    void refreshAll();
-    return res;
+    const membership = await renewSupabaseMembership(params);
+
+    let payment: Payment | undefined;
+    if (params.recordPaymentNow) {
+      payment = await createSupabasePayment({
+        memberId: membership.memberId,
+        memberName: membership.memberName,
+        memberCode: membership.memberCode,
+        membershipId: membership.id,
+        amount: membership.price,
+        paymentDate: new Date().toISOString().slice(0, 10),
+        paymentMethod: params.paymentMethod || 'UPI',
+        transactionReference: `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`,
+        status: 'PAID',
+        recordedBy: params.performedBy || 'Staff',
+        notes: `Renewal payment for ${membership.planName}`,
+      });
+    }
+
+    await refreshAll();
+    return { membership, payment };
   };
 
-  const recordPayment = (data: Omit<Payment, 'id' | 'createdAt'>) => {
-    const p = gymStorage.recordPayment(data);
-    void refreshAll();
-    return p;
+  const recordPayment = async (data: Omit<Payment, 'id' | 'createdAt'>) => {
+    const payment = await createSupabasePayment(data);
+    await refreshAll();
+    return payment;
   };
 
-  const undoPayment = (paymentIdOrTxn: string, performedBy?: string) => {
-    const res = gymStorage.undoPayment(paymentIdOrTxn, performedBy);
-    void refreshAll();
-    return res;
+  const undoPayment = async (paymentIdOrTxn: string) => {
+    await refundSupabasePayment(paymentIdOrTxn);
+    await refreshAll();
+    return { success: true, message: 'Payment refunded successfully.' };
   };
 
-  const cancelMembership = (membershipId: string, performedBy?: string) => {
-    gymStorage.cancelMembership(membershipId, performedBy);
-    void refreshAll();
+  const cancelMembership = async (membershipId: string) => {
+    await cancelSupabaseMembership(membershipId);
+    await refreshAll();
   };
 
   const checkInMember = async (memberId: string, gate?: string, _authMethod?: string) => {
