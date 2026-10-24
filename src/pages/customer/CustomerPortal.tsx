@@ -19,46 +19,73 @@ export const CustomerPortal: React.FC = () => {
     attendance,
     plans,
     createRenewalRequest,
-    renewMembership,
     checkInMember
   } = useGym();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'details' | 'attendance' | 'invoices'>('details');
   const [renewalModalOpen, setRenewalModalOpen] = useState(false);
-  const [selectedRenewalPlanId, setSelectedRenewalPlanId] = useState('plan-premium');
+  const [selectedRenewalPlanId, setSelectedRenewalPlanId] = useState('');
   const [fullscreenQrOpen, setFullscreenQrOpen] = useState(false);
-  const [qrToken, setQrToken] = useState('WRR-9942-RS');
+  const [qrToken, setQrToken] = useState('');
   const [qrTimer, setQrTimer] = useState(28);
 
-  // Find current member
-  const member = members.find(m => m.id === 'mem-1042') || members[0];
-  const membership = member ? (memberships.find(m => m.memberId === member.id) || memberships[0]) : undefined;
-  const memberPayments = member ? payments.filter(p => p.memberId === member.id) : [];
-  const memberAttendance = member ? attendance.filter(a => a.memberId === member.id) : [];
+  // Customer data must be scoped to the authenticated Supabase user.
+  // Never fall back to another member or a demo record.
+  const member = currentUser
+    ? members.find(m => m.userId === currentUser.uid || m.email.toLowerCase() === currentUser.email.toLowerCase())
+    : undefined;
+
+  const memberMemberships = member
+    ? memberships.filter(m => m.memberId === member.id)
+    : [];
+  const membership =
+    memberMemberships.find(m => m.status === 'ACTIVE' || m.status === 'EXPIRING_SOON') ||
+    memberMemberships[0];
+
+  const memberPayments = member
+    ? payments.filter(p => p.memberId === member.id)
+    : [];
+  const memberAttendance = member
+    ? attendance.filter(a => a.memberId === member.id)
+    : [];
 
   const daysRemaining = membership ? getDaysRemaining(membership.expiryDate) : 0;
+
+  React.useEffect(() => {
+    if (member) setQrToken(`WF-${member.memberCode.replace('#', '')}`);
+  }, [member?.id, member?.memberCode]);
   const isExpired = daysRemaining < 0;
   const isExpiringSoon = daysRemaining >= 0 && daysRemaining <= 7;
 
   // Calculate progress percentage
-  const totalDays = 180;
+  const totalDays = membership
+    ? Math.max(
+        1,
+        Math.ceil(
+          (new Date(`${membership.expiryDate}T23:59:59`).getTime() -
+            new Date(`${membership.startDate}T00:00:00`).getTime()) /
+            86400000
+        ) + 1
+      )
+    : 0;
   const daysCompleted = Math.max(0, Math.min(totalDays, totalDays - daysRemaining));
   const completionPercentage = Math.round((daysCompleted / totalDays) * 100);
 
   const handleInstantRenewal = () => {
     const plan = plans.find(p => p.id === selectedRenewalPlanId) || plans[0];
+
     if (!member || !plan) {
-      showToast('Renewal Notice', 'Unable to resolve membership pass or current member.', 'error');
+      showToast('Renewal Notice', 'Unable to resolve your membership or a renewal plan.', 'error');
       return;
     }
+
     try {
-      // Execute 1-tap renewal or request
-      renewMembership({
+      // Customers request renewal; Owner/Staff approve and apply the renewal.
+      createRenewalRequest({
         memberId: member.id,
-        planId: plan.id,
-        recordPaymentNow: true,
-        performedBy: `${member.name} (Customer 1-Tap)`,
+        requestedPlanId: plan.id,
+        notes: 'Requested from Customer Portal',
       });
 
       try {
@@ -68,9 +95,13 @@ export const CustomerPortal: React.FC = () => {
       }
 
       setRenewalModalOpen(false);
-      showToast('Renewal Confirmed! 🎉', `Your ${plan.name} has been extended. Turnstile access valid.`, 'success');
+      showToast(
+        'Renewal Request Sent',
+        `${plan.name} renewal request has been sent to the gym staff.`,
+        'success'
+      );
     } catch (err: any) {
-      showToast('Renewal Failed', err.message, 'error');
+      showToast('Renewal Request Failed', err.message, 'error');
     }
   };
 
@@ -80,12 +111,36 @@ export const CustomerPortal: React.FC = () => {
       return;
     }
     try {
-      await checkInMember(member.id, 'Turnstile Gate A (Midtown Hub)', 'Digital Member QR');
+      await checkInMember(member.id, 'Turnstile Gate A (Downtown HQ)', 'Digital Member QR');
       showToast('Optical Turnstile Unlocked!', 'Access GRANTED: Solenoid released for 6.0 seconds.', 'success');
     } catch (err: any) {
       showToast('Turnstile Access', err.message, 'info');
     }
   };
+
+  if (!member) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 md:px-8 py-16">
+        <div className="rounded-2xl border border-rose-200/30 bg-white/80 dark:bg-[#1a0f0e]/80 p-8 text-center">
+          <span className="material-symbols-outlined text-5xl text-[#bc0100]">person_off</span>
+          <h1 className="mt-4 text-2xl font-bold text-[#2b1613] dark:text-white">
+            Member profile not linked
+          </h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-gray-400">
+            Your login is valid, but this account is not linked to a Warrior Fitness member record yet.
+            Please contact the gym staff.
+          </p>
+          <button
+            type="button"
+            onClick={logout}
+            className="mt-6 px-5 py-2.5 rounded-xl bg-[#bc0100] text-white text-sm font-bold"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6">
@@ -131,7 +186,7 @@ export const CustomerPortal: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-headline font-bold text-xl text-[#2b1613] dark:text-white leading-tight">
-                {member?.name || 'Rahul Sharma'}
+                {member?.name || 'Member'}
               </h1>
               <span className="bg-[#ffe9e6] dark:bg-white/10 text-[#bc0100] px-2 py-0.5 rounded-full text-[10px] font-bold font-label-caps">
                 MEMBER
@@ -142,7 +197,7 @@ export const CustomerPortal: React.FC = () => {
               <span>•</span>
               <span className="flex items-center gap-0.5">
                 <span className="material-symbols-outlined text-[14px] text-[#0059ba]">location_on</span>
-                Midtown Hub
+                Downtown HQ
               </span>
             </div>
           </div>
