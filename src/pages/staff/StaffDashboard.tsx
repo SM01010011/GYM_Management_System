@@ -58,7 +58,7 @@ export const StaffDashboard: React.FC = () => {
     try {
       // 1. Create Member
       const memberCode = `#M-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newMember = addMember({
+      const newMember = await addMember({
         memberCode,
         name: fullName,
         phone: mobilePhone,
@@ -68,13 +68,10 @@ export const StaffDashboard: React.FC = () => {
         emergencyContact,
         emergencyRelation,
         joinDate: startDate,
-        status: 'ACTIVE',
-        assignedCoach: 'Vikram Rajput',
-        lockerNumber: String(Math.floor(10 + Math.random() * 80)),
       });
 
       // 2. Assign Membership with Payment
-      const { membership } = assignMembership({
+      const { membership } = await assignMembership({
         memberId: newMember.id,
         planId: selectedPlan.id,
         startDate,

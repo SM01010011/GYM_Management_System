@@ -196,10 +196,10 @@ export const MembersManagement: React.FC = () => {
     }
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
-    updateMember(editingMember.id, {
+    await updateMember(editingMember.id, {
       name: formName,
       phone: formPhone,
       email: formEmail,
@@ -449,9 +449,9 @@ export const MembersManagement: React.FC = () => {
                           </button>
 
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               try {
-                                renewMembership({
+                                await renewMembership({
                                   memberId: member.id,
                                   recordPaymentNow: true,
                                   performedBy: 'Staff One-Click',
@@ -541,9 +541,9 @@ export const MembersManagement: React.FC = () => {
           setDetailMember(null);
           handleOpenEdit(m);
         }}
-        onRenew={m => {
+        onRenew={async m => {
           try {
-            renewMembership({ memberId: m.id, recordPaymentNow: true });
+            await renewMembership({ memberId: m.id, recordPaymentNow: true });
             showToast('Pass Renewed! 🎉', `Extended pass for ${m.name}.`, 'success');
           } catch (err: any) {
             showToast('Renewal Failed', err.message, 'error');
@@ -553,8 +553,8 @@ export const MembersManagement: React.FC = () => {
           setDetailMember(null);
           setAssignMember(m);
         }}
-        onRecordPayment={m => {
-          recordPayment({
+        onRecordPayment={async m => {
+          await recordPayment({
             memberId: m.id,
             memberName: m.name,
             memberCode: m.memberCode,

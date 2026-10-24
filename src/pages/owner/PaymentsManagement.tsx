@@ -55,7 +55,7 @@ export const PaymentsManagement: React.FC = () => {
     return payments.filter(p => p.status === 'PENDING').length;
   }, [payments]);
 
-  const handleRecordSubmit = (e: React.FormEvent) => {
+  const handleRecordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const mem = members.find(m => m.id === formMemberId);
     if (!mem) {
@@ -64,7 +64,7 @@ export const PaymentsManagement: React.FC = () => {
     }
 
     const txnRef = `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`;
-    const created = recordPayment({
+    const created = await recordPayment({
       memberId: mem.id,
       memberName: mem.name,
       memberCode: mem.memberCode,

@@ -401,9 +401,9 @@ export const PublicLanding: React.FC = () => {
                           if (!activeMembershipForPlan) return;
                           const payment = payments.find(p => p.membershipId === activeMembershipForPlan.id && p.status === 'PAID');
                           if (payment) {
-                            undoPayment(payment.id);
+                            await undoPayment(payment.id);
                           } else {
-                            cancelMembership(activeMembershipForPlan.id);
+                            await cancelMembership(activeMembershipForPlan.id);
                           }
                           showToast('Payment Undone', `Payment for ${plan.name} has been reversed. The purchase button is now unlocked!`, 'info');
                         }}
