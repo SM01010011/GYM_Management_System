@@ -19,6 +19,7 @@ import {
 } from '../types';
 import { gymStorage } from '../services/storage';
 import { getSupabaseMembers } from '../services/supabaseMembers';
+import { deleteSupabaseMember } from '../services/supabaseMemberMutations';
 import {
   getSupabaseMembershipPlans,
   getSupabaseMemberships,
@@ -257,8 +258,16 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteMember = (id: string) => {
-    gymStorage.deleteMember(id);
-    void refreshAll();
+    // Members are persisted in Supabase. Do not delete only from local storage.
+    void deleteSupabaseMember(id)
+      .then(() => refreshAll())
+      .catch((error) => {
+        console.error('Failed to delete member from Supabase:', error);
+        void refreshAll();
+        window.dispatchEvent(new CustomEvent('warrior:member-delete-error', {
+          detail: error instanceof Error ? error.message : 'Unable to delete member.'
+        }));
+      });
   };
 
   const addPlan = (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
