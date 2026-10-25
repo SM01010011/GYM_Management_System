@@ -118,8 +118,23 @@ export async function provisionSupabaseStaffAccount(input: {
     },
   });
 
-  if (error) throw new Error(error.message || 'Unable to create staff account.');
-  if (!data?.success) throw new Error(data?.error || 'Unable to create staff account.');
+  if (error) {
+    let backendMessage = '';
+    try {
+      const response = (error as { context?: Response }).context;
+      if (response) {
+        const payload = await response.clone().json().catch(() => null) as { error?: string; message?: string } | null;
+        backendMessage = payload?.error || payload?.message || '';
+      }
+    } catch {
+      // Fall back to the SDK error message below.
+    }
+    throw new Error(backendMessage || error.message || 'Unable to create staff account.');
+  }
+
+  if (!data?.success) {
+    throw new Error(data?.error || data?.message || 'Unable to create staff account.');
+  }
 
   const { error: profileEmailError } = await supabase
     .from('profiles')
