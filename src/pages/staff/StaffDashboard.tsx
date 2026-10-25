@@ -47,7 +47,7 @@ export const StaffDashboard: React.FC = () => {
     ? addDaysToDate(startDate, selectedPlan.durationDays)
     : addDaysToDate(startDate, 30);
 
-  const handleOnboardSubmit = (e: React.FormEvent) => {
+  const handleOnboardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedPlan) {
@@ -57,9 +57,7 @@ export const StaffDashboard: React.FC = () => {
 
     try {
       // 1. Create Member
-      const memberCode = `#M-${Math.floor(1000 + Math.random() * 9000)}`;
       const newMember = await addMember({
-        memberCode,
         name: fullName,
         phone: mobilePhone,
         email,

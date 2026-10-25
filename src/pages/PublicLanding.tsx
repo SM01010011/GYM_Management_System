@@ -397,7 +397,7 @@ export const PublicLanding: React.FC = () => {
 
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           if (!activeMembershipForPlan) return;
                           const payment = payments.find(p => p.membershipId === activeMembershipForPlan.id && p.status === 'PAID');
                           if (payment) {
@@ -1128,8 +1128,8 @@ export const PublicLanding: React.FC = () => {
                 {/* 4. Undo Payment & Unlock Plan */}
                 <button
                   type="button"
-                  onClick={() => {
-                    undoPayment(receiptData.txnId);
+                  onClick={async () => {
+                    await undoPayment(receiptData.txnId);
                     setReceiptData(null);
                     showToast('Payment Undone', `Payment for ${receiptData.planName} has been reversed. The purchase button is now unlocked!`, 'info');
                   }}

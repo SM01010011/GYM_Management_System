@@ -25,7 +25,6 @@ import {
   toggleSupabaseMemberStatus,
   deleteSupabaseMember,
 } from '../services/supabaseMemberMutations';
-import { deleteSupabaseMember } from '../services/supabaseMemberMutations';
 import {
   getSupabaseMembershipPlans,
   getSupabaseMemberships,
