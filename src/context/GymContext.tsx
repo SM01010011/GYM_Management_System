@@ -218,7 +218,6 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // Non-core compatibility domains remain on local storage.
       setHistory(gymStorage.getHistory());
-      setStaffList(gymStorage.getStaffPermissions());
       setActivityLogs(gymStorage.getActivityLogs());
       setNotifications(gymStorage.getNotifications());
       setRenewalRequests(gymStorage.getRenewalRequests());

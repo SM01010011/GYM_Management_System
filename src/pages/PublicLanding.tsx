@@ -10,7 +10,7 @@ import { useToast } from '../components/common/Toast';
 import confetti from 'canvas-confetti';
 
 export const PublicLanding: React.FC = () => {
-  const { setActiveView, switchRole } = useAuth();
+  const { setActiveView } = useAuth();
   const {
     plans,
     recordPayment,
@@ -1116,8 +1116,7 @@ export const PublicLanding: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setReceiptData(null);
-                    switchRole('CUSTOMER');
-                    setActiveView('customer');
+                    setActiveView('login');
                   }}
                   className="w-full py-2.5 bg-[#fff0ee] dark:bg-white/10 text-[#bc0100] dark:text-red-400 font-bold text-xs rounded-xl hover:bg-red-100 dark:hover:bg-white/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
