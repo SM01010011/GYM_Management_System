@@ -142,7 +142,7 @@ export const StaffManagement: React.FC = () => {
                     </div>
                   </div>
 
-                  <span className={`text-xs font-mono px-2 py-0.5 rounded ${staff.isActive ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10' : 'text-gray-500 dark:text-slate-500 bg-gray-100 dark:bg-slate-800'}`}>
+                  <span className={`text-xs font-mono px-2 py-0.5 rounded ${staff.isActive ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10' : 'text-gray-500 dark:text-slate-500 bg-[#241513] dark:bg-[#241513]'}`}>
                     {staff.isActive ? 'ACTIVE' : 'INACTIVE'}
                   </span>
                 </div>
@@ -164,19 +164,19 @@ export const StaffManagement: React.FC = () => {
                 <div className="mt-4 pt-3 border-t border-[#ebbbb4]/30 dark:border-slate-800/80">
                   <p className="text-[11px] font-mono text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">Granted Authorities:</p>
                   <div className="flex flex-wrap gap-1.5">
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canManageMembers ? 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canManageMembers ? 'bg-[#241513] dark:bg-[#241513] text-[#e8d8d5] dark:text-[#e8d8d5]' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
                       Members CRUD
                     </span>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canManageMemberships ? 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canManageMemberships ? 'bg-[#241513] dark:bg-[#241513] text-[#e8d8d5] dark:text-[#e8d8d5]' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
                       Renew/Assign
                     </span>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canRecordPayments ? 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canRecordPayments ? 'bg-[#241513] dark:bg-[#241513] text-[#e8d8d5] dark:text-[#e8d8d5]' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
                       Payments
                     </span>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canManageAttendance ? 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canManageAttendance ? 'bg-[#241513] dark:bg-[#241513] text-[#e8d8d5] dark:text-[#e8d8d5]' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
                       Turnstiles
                     </span>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canViewReports ? 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${staff.canViewReports ? 'bg-[#241513] dark:bg-[#241513] text-[#e8d8d5] dark:text-[#e8d8d5]' : 'bg-gray-50 dark:bg-slate-950 text-gray-400 dark:text-slate-600 line-through'}`}>
                       Analytics
                     </span>
                   </div>
@@ -215,7 +215,7 @@ export const StaffManagement: React.FC = () => {
       {/* Add Staff Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-[#ebbbb4] dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-[#160b0a] dark:bg-[#160b0a] border border-[#3a211e] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <h3 className="text-xl font-bold text-[#2b1613] dark:text-white">Add Staff Attendant</h3>
             <p className="text-xs text-gray-500 dark:text-slate-400">
               Staff members can check in members, record payments, and manage active passes.
@@ -230,7 +230,7 @@ export const StaffManagement: React.FC = () => {
                   placeholder="e.g. Vikas Sharma"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-[#fff8f6] dark:bg-slate-950 border border-[#ebbbb4] dark:border-slate-800 rounded-xl px-3 py-2 text-[#2b1613] dark:text-white text-sm focus:outline-none focus:border-red-600 mt-1"
+                  className="w-full bg-[#110807] dark:bg-[#110807] border border-[#ebbbb4] dark:border-slate-800 rounded-xl px-3 py-2 text-[#2b1613] dark:text-white text-sm focus:outline-none focus:border-red-600 mt-1"
                 />
               </div>
 
@@ -242,7 +242,7 @@ export const StaffManagement: React.FC = () => {
                   placeholder="e.g. vikas@warriorfitness.in"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-[#fff8f6] dark:bg-slate-950 border border-[#ebbbb4] dark:border-slate-800 rounded-xl px-3 py-2 text-[#2b1613] dark:text-white text-sm focus:outline-none focus:border-red-600 mt-1"
+                  className="w-full bg-[#110807] dark:bg-[#110807] border border-[#ebbbb4] dark:border-slate-800 rounded-xl px-3 py-2 text-[#2b1613] dark:text-white text-sm focus:outline-none focus:border-red-600 mt-1"
                 />
               </div>
 
@@ -253,7 +253,7 @@ export const StaffManagement: React.FC = () => {
                   placeholder="+91 98765 43210"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-[#fff8f6] dark:bg-slate-950 border border-[#ebbbb4] dark:border-slate-800 rounded-xl px-3 py-2 text-[#2b1613] dark:text-white text-sm focus:outline-none focus:border-red-600 mt-1"
+                  className="w-full bg-[#110807] dark:bg-[#110807] border border-[#ebbbb4] dark:border-slate-800 rounded-xl px-3 py-2 text-[#2b1613] dark:text-white text-sm focus:outline-none focus:border-red-600 mt-1"
                 />
               </div>
 
@@ -261,7 +261,7 @@ export const StaffManagement: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-xs font-medium hover:bg-gray-200 dark:hover:bg-slate-700 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#241513] dark:bg-[#241513] text-[#e8d8d5] dark:text-[#e8d8d5] text-xs font-medium hover:bg-gray-200 dark:hover:bg-slate-700 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -280,7 +280,7 @@ export const StaffManagement: React.FC = () => {
       {/* Edit Permissions Modal */}
       {editingPermissionsStaffId && currentPerms && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-[#ebbbb4] dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+          <div className="bg-[#160b0a] dark:bg-[#160b0a] border border-[#3a211e] rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
             <div>
               <h3 className="text-xl font-bold text-[#2b1613] dark:text-white">Configure Staff Permissions</h3>
               <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
@@ -289,7 +289,7 @@ export const StaffManagement: React.FC = () => {
             </div>
 
             <div className="space-y-3 pt-2">
-              <label className="flex items-center justify-between p-3 rounded-xl bg-[#fff8f6] dark:bg-slate-950/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-[#110807] dark:bg-[#110807]/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
                 <div>
                   <span className="text-sm font-bold text-[#2b1613] dark:text-white block">Manage Members (Add / Edit)</span>
                   <span className="text-xs text-gray-500 dark:text-slate-400">Can create member records and edit profiles</span>
@@ -302,7 +302,7 @@ export const StaffManagement: React.FC = () => {
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-[#fff8f6] dark:bg-slate-950/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-[#110807] dark:bg-[#110807]/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
                 <div>
                   <span className="text-sm font-bold text-[#2b1613] dark:text-white block">Assign & Renew Memberships</span>
                   <span className="text-xs text-gray-500 dark:text-slate-400">Can apply plan tiers and extend validity</span>
@@ -315,7 +315,7 @@ export const StaffManagement: React.FC = () => {
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-[#fff8f6] dark:bg-slate-950/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-[#110807] dark:bg-[#110807]/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
                 <div>
                   <span className="text-sm font-bold text-[#2b1613] dark:text-white block">Record Payments & Receipts</span>
                   <span className="text-xs text-gray-500 dark:text-slate-400">Can collect cash, UPI, or card payments</span>
@@ -328,7 +328,7 @@ export const StaffManagement: React.FC = () => {
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-[#fff8f6] dark:bg-slate-950/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-[#110807] dark:bg-[#110807]/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
                 <div>
                   <span className="text-sm font-bold text-[#2b1613] dark:text-white block">Attendance & Turnstile Gate Override</span>
                   <span className="text-xs text-gray-500 dark:text-slate-400">Can manual check-in members and unlock gates</span>
@@ -341,7 +341,7 @@ export const StaffManagement: React.FC = () => {
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-[#fff8f6] dark:bg-slate-950/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-[#110807] dark:bg-[#110807]/60 border border-[#ebbbb4]/40 dark:border-slate-800 cursor-pointer hover:border-red-400 dark:hover:border-slate-700">
                 <div>
                   <span className="text-sm font-bold text-[#2b1613] dark:text-white block">Financial Analytics & Export Reports</span>
                   <span className="text-xs text-gray-500 dark:text-slate-400">Can view total revenue breakdown and download CSV</span>
@@ -358,7 +358,7 @@ export const StaffManagement: React.FC = () => {
             <div className="flex justify-end gap-3 pt-3 border-t border-[#ebbbb4]/30 dark:border-slate-800">
               <button
                 onClick={() => setEditingPermissionsStaffId(null)}
-                className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-xs font-medium hover:bg-gray-200 dark:hover:bg-slate-700 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#241513] dark:bg-[#241513] text-[#e8d8d5] dark:text-[#e8d8d5] text-xs font-medium hover:bg-gray-200 dark:hover:bg-slate-700 cursor-pointer"
               >
                 Cancel
               </button>
