@@ -212,23 +212,20 @@ export const MembersManagement: React.FC = () => {
     showToast('Member Updated', `Saved profile details for ${formName}.`, 'success');
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteConfirmMember) return;
+
     const member = deleteConfirmMember;
-    deleteMember(member.id);
-    setDeleteConfirmMember(null);
-    showToast('Deleting Member', `Removing ${member.name} from the live database...`, 'warning');
+    try {
+      showToast('Deleting Member', `Removing ${member.name} from the live database...`, 'warning');
+      await deleteMember(member.id);
+      setDeleteConfirmMember(null);
+      showToast('Member Deleted', `${member.name} was permanently removed from the live database.`, 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to delete member.';
+      showToast('Delete Failed', message, 'error');
+    }
   };
-
-  useEffect(() => {
-    const onDeleteError = (event: Event) => {
-      const detail = (event as CustomEvent<string>).detail;
-      showToast('Delete Failed', detail || 'Unable to delete member.', 'error');
-    };
-
-    window.addEventListener('warrior:member-delete-error', onDeleteError);
-    return () => window.removeEventListener('warrior:member-delete-error', onDeleteError);
-  }, [showToast]);
 
   return (
     <div className="space-y-6">
