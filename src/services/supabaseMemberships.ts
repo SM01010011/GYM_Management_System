@@ -5,7 +5,8 @@
 
 import { supabase } from '../lib/supabase';
 import type { Membership, MembershipPlan } from '../types';
-import { addDaysToDate } from '../utils/dateUtils';
+import { addDaysToDate, getTodayDateString } from '../utils/dateUtils';
+import { displayMemberCode } from './supabaseMemberMutations';
 
 const EXPIRING_SOON_DAYS = 7;
 
@@ -17,16 +18,13 @@ function mapMembershipStatus(
   if (status === 'expired') return 'EXPIRED';
 
   if (status === 'active') {
-    const today = new Date();
-    const expiry = new Date(`${endDate}T00:00:00`);
-    const differenceMs = expiry.getTime() - today.getTime();
-    const differenceDays = Math.ceil(
-      differenceMs / (1000 * 60 * 60 * 24)
-    );
+    const today = getTodayDateString();
+    const todayMs = new Date(`${today}T00:00:00`).getTime();
+    const expiryMs = new Date(`${endDate}T00:00:00`).getTime();
+    const differenceDays = Math.floor((expiryMs - todayMs) / 86400000);
 
-    if (differenceDays >= 0 && differenceDays <= EXPIRING_SOON_DAYS) {
-      return 'EXPIRING_SOON';
-    }
+    if (differenceDays < 0) return 'EXPIRED';
+    if (differenceDays <= EXPIRING_SOON_DAYS) return 'EXPIRING_SOON';
 
     return 'ACTIVE';
   }
@@ -63,7 +61,7 @@ function mapMembershipRow(membership: any): Membership {
     id: membership.id,
     memberId: membership.member_id,
     memberName: member?.full_name ?? '',
-    memberCode: '',
+    memberCode: displayMemberCode(membership.member_id),
     planId: membership.plan_id,
     planName: plan?.name ?? '',
     startDate: membership.start_date,

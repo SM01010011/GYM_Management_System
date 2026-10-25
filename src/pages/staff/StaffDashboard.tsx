@@ -8,6 +8,8 @@ import { useGym } from '../../context/GymContext';
 import { useAuth } from '../../context/AuthContext';
 import { addDaysToDate, formatDisplayDate, getTodayDateString } from '../../utils/dateUtils';
 import { useToast } from '../../components/common/Toast';
+import { Modal } from '../../components/common/Modal';
+import { provisionMemberAccount } from '../../services/supabaseMemberAccounts';
 import confetti from 'canvas-confetti';
 
 export const StaffDashboard: React.FC = () => {
@@ -37,6 +39,7 @@ export const StaffDashboard: React.FC = () => {
   const [startDate, setStartDate] = useState(getTodayDateString());
   const [paymentMode, setPaymentMode] = useState<'UPI' | 'CASH' | 'CARD' | 'BANK_TRANSFER'>('UPI');
   const [generateReceipt, setGenerateReceipt] = useState(true);
+  const [loginCredentials, setLoginCredentials] = useState<{ name: string; email: string; password: string } | null>(null);
 
   // Turnstile quick lookup
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,8 +47,8 @@ export const StaffDashboard: React.FC = () => {
 
   const selectedPlan = plans.length > 0 ? (plans.find(p => p.id === selectedPlanId) || plans[0]) : undefined;
   const calculatedExpiryDate = selectedPlan
-    ? addDaysToDate(startDate, selectedPlan.durationDays)
-    : addDaysToDate(startDate, 30);
+    ? addDaysToDate(startDate, Math.max(0, selectedPlan.durationDays - 1))
+    : addDaysToDate(startDate, 29);
 
   const handleOnboardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +71,22 @@ export const StaffDashboard: React.FC = () => {
         joinDate: startDate,
       });
 
-      // 2. Assign Membership with Payment
+      // 2. Provision the customer login from the server-side Supabase function.
+      // Registration remains usable if the optional login function is unavailable.
+      let credentials: { email: string; password: string } | null = null;
+      try {
+        const provisioned = await provisionMemberAccount(newMember.id);
+        credentials = { email: provisioned.email, password: provisioned.password };
+      } catch (accountError: any) {
+        console.warn('Member created, but customer login provisioning failed:', accountError);
+        showToast(
+          'Member Created — Login Pending',
+          accountError?.message || 'Create the customer login from Members Directory.',
+          'warning'
+        );
+      }
+
+      // 3. Assign Membership with Payment
       const { membership } = await assignMembership({
         memberId: newMember.id,
         planId: selectedPlan.id,
@@ -84,9 +102,13 @@ export const StaffDashboard: React.FC = () => {
         console.error(err);
       }
 
+      if (credentials) {
+        setLoginCredentials({ name: newMember.name, ...credentials });
+      }
+
       showToast(
         'Registration Successful! 🎉',
-        `Member ${fullName} (${memberCode}) enrolled with ${selectedPlan.name}. Pass expires ${formatDisplayDate(calculatedExpiryDate)}.`,
+        `Member ${fullName} (${newMember.memberCode}) enrolled with ${selectedPlan.name}. Pass expires ${formatDisplayDate(calculatedExpiryDate)}.`,
         'success'
       );
 
@@ -543,6 +565,36 @@ export const StaffDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={loginCredentials !== null}
+        onClose={() => setLoginCredentials(null)}
+        title="Member Login Created"
+        subtitle="Save these credentials — the generated password is shown only once."
+        icon="key"
+        maxWidth="md"
+      >
+        {loginCredentials && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+              <p className="text-sm font-bold text-gray-900 dark:text-white">{loginCredentials.name}</p>
+              <p className="text-xs text-gray-500 mt-1">Customer account is linked to the member record.</p>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Login Email</label>
+              <div className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 font-mono text-sm">{loginCredentials.email}</div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">System Generated Password</label>
+              <div className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 font-mono text-sm select-all">{loginCredentials.password}</div>
+            </div>
+            <p className="text-[11px] text-amber-600 dark:text-amber-400">Give these credentials to the member securely. The password is not stored in the member table.</p>
+            <div className="flex justify-end pt-2">
+              <button type="button" onClick={() => setLoginCredentials(null)} className="px-5 py-2.5 rounded-xl bg-[#bc0100] text-white text-xs font-bold">Done</button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* STICKY BOTTOM OPERATIONAL COMMIT BAR (Matching Image 14 exactly!) */}
       <footer className="fixed bottom-0 left-0 w-full z-40 bg-white/95 dark:bg-[#140b0a]/95 backdrop-blur-xl border-t border-[#ebbbb4]/40 dark:border-white/10 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] py-3.5 px-4 md:px-8">

@@ -74,7 +74,7 @@ interface GymContextType {
   addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Member>;
   updateMember: (id: string, updates: Partial<Member>) => Promise<Member>;
   toggleMemberStatus: (id: string) => Promise<Member>;
-  deleteMember: (id: string) => void;
+  deleteMember: (id: string) => Promise<void>;
 
   addPlan: (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => Promise<MembershipPlan>;
   updatePlan: (id: string, updates: Partial<MembershipPlan>) => Promise<MembershipPlan>;
@@ -86,6 +86,8 @@ interface GymContextType {
     recordPaymentNow?: boolean;
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
+    transactionReference?: string;
+    paymentAmount?: number;
   }) => Promise<{ membership: Membership; payment?: Payment }>;
 
   renewMembership: (params: {
@@ -227,6 +229,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const currentMonthPrefix = todayStr.slice(0, 7); // e.g. "2026-10"
 
   const activeMemberships = memberships.filter(m => m.status === 'ACTIVE');
+  const activeMemberIds = new Set(activeMemberships.map(m => m.memberId));
   const expiringMemberships = memberships.filter(m => m.status === 'EXPIRING_SOON');
   const expiredMemberships = memberships.filter(m => m.status === 'EXPIRED');
 
@@ -246,7 +249,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const stats: GymStats = {
     totalMembers: members.length,
-    activeMembers: activeMemberships.length,
+    activeMembers: activeMemberIds.size,
     expiringSoon: expiringMemberships.length,
     expiredMembers: expiredMemberships.length,
     monthlyRevenue,
@@ -293,16 +296,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return updated;
   };
 
-  const deleteMember = (id: string) => {
-    void deleteSupabaseMember(id)
-      .then(() => refreshAll())
-      .catch((error) => {
-        console.error('Failed to delete member from Supabase:', error);
-        void refreshAll();
-        window.dispatchEvent(new CustomEvent('warrior:member-delete-error', {
-          detail: error instanceof Error ? error.message : 'Unable to delete member.'
-        }));
-      });
+  const deleteMember = async (id: string): Promise<void> => {
+    await deleteSupabaseMember(id);
+    await refreshAll();
   };
 
   const addPlan = async (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -338,10 +334,10 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         memberName: membership.memberName,
         memberCode: membership.memberCode,
         membershipId: membership.id,
-        amount: membership.price,
+        amount: params.paymentAmount ?? membership.price,
         paymentDate: params.startDate,
         paymentMethod: params.paymentMethod || 'UPI',
-        transactionReference: `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`,
+        transactionReference: params.transactionReference || `TXN-WRR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
         status: 'PAID',
         recordedBy: params.performedBy || 'Staff',
         notes: `Full payment for ${membership.planName}`,

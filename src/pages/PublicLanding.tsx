@@ -101,6 +101,8 @@ export const PublicLanding: React.FC = () => {
         startDate: new Date().toISOString().slice(0, 10),
         recordPaymentNow: true,
         paymentMethod: paymentMethod === 'NET_BANKING' ? 'BANK_TRANSFER' : paymentMethod,
+        transactionReference: txnRef,
+        paymentAmount: totalAmount,
       });
 
       // Confetti burst!

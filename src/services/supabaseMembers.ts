@@ -30,6 +30,7 @@ export async function getSupabaseMembers(): Promise<Member[]> {
       phone,
       date_of_birth,
       gender,
+      address,
       emergency_contact_name,
       emergency_contact_phone,
       status,
@@ -51,6 +52,7 @@ export async function getSupabaseMembers(): Promise<Member[]> {
     phone: member.phone ?? '',
     email: member.email ?? '',
     dateOfBirth: member.date_of_birth ?? undefined,
+    address: member.address ?? undefined,
     gender:
       member.gender === 'Male' ||
       member.gender === 'Female' ||

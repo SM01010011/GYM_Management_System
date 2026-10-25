@@ -103,7 +103,7 @@ export function computeRenewalDates(
     };
   } else {
     // Already expired - starts from today
-    const newExpiry = addDaysToDate(todayStr, durationDays);
+    const newExpiry = addDaysToDate(todayStr, Math.max(0, durationDays - 1));
     return {
       startDate: todayStr,
       newExpiryDate: newExpiry,

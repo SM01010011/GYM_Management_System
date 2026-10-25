@@ -199,36 +199,36 @@ export const MembersManagement: React.FC = () => {
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
-    await updateMember(editingMember.id, {
-      name: formName,
-      phone: formPhone,
-      email: formEmail,
-      gender: formGender,
-      dateOfBirth: formDob,
-      emergencyContact: formEmergency,
-      address: formAddress,
-    });
-    setEditMemberModalOpen(false);
-    showToast('Member Updated', `Saved profile details for ${formName}.`, 'success');
+
+    try {
+      await updateMember(editingMember.id, {
+        name: formName,
+        phone: formPhone,
+        email: formEmail,
+        gender: formGender,
+        dateOfBirth: formDob,
+        emergencyContact: formEmergency,
+        address: formAddress,
+      });
+      setEditMemberModalOpen(false);
+      showToast('Member Updated', `Saved profile details for ${formName}.`, 'success');
+    } catch (err: any) {
+      showToast('Update Failed', err?.message || 'Unable to update member.', 'error');
+    }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteConfirmMember) return;
     const member = deleteConfirmMember;
-    deleteMember(member.id);
-    setDeleteConfirmMember(null);
-    showToast('Deleting Member', `Removing ${member.name} from the live database...`, 'warning');
+
+    try {
+      await deleteMember(member.id);
+      setDeleteConfirmMember(null);
+      showToast('Member Deleted', `${member.name} was removed from the live database.`, 'success');
+    } catch (err: any) {
+      showToast('Delete Failed', err?.message || 'Unable to delete member.', 'error');
+    }
   };
-
-  useEffect(() => {
-    const onDeleteError = (event: Event) => {
-      const detail = (event as CustomEvent<string>).detail;
-      showToast('Delete Failed', detail || 'Unable to delete member.', 'error');
-    };
-
-    window.addEventListener('warrior:member-delete-error', onDeleteError);
-    return () => window.removeEventListener('warrior:member-delete-error', onDeleteError);
-  }, [showToast]);
 
   return (
     <div className="space-y-6">
@@ -554,31 +554,39 @@ export const MembersManagement: React.FC = () => {
           setAssignMember(m);
         }}
         onRecordPayment={async m => {
-          await recordPayment({
-            memberId: m.id,
-            memberName: m.name,
-            memberCode: m.memberCode,
-            amount: 3500,
-            paymentDate: new Date().toISOString().slice(0, 10),
-            paymentMethod: 'UPI',
-            transactionReference: `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`,
-            status: 'PAID',
-            recordedBy: 'Owner',
-            notes: 'Manual desk payment recorded',
-          });
-          showToast('Payment Recorded', `₹3,500 recorded for ${m.name}.`, 'success');
-        }}
-        onMarkAttendance={m => {
           try {
-            checkInMember(m.id);
+            await recordPayment({
+              memberId: m.id,
+              memberName: m.name,
+              memberCode: m.memberCode,
+              amount: 3500,
+              paymentDate: new Date().toISOString().slice(0, 10),
+              paymentMethod: 'UPI',
+              transactionReference: `TXN-WRR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+              status: 'PAID',
+              recordedBy: 'Owner',
+              notes: 'Manual desk payment recorded',
+            });
+            showToast('Payment Recorded', `₹3,500 recorded for ${m.name}.`, 'success');
+          } catch (err: any) {
+            showToast('Payment Failed', err?.message || 'Unable to record payment.', 'error');
+          }
+        }}
+        onMarkAttendance={async m => {
+          try {
+            await checkInMember(m.id);
             showToast('Check-In Successful', `${m.name} checked in at turnstile gate.`, 'success');
           } catch (err: any) {
             showToast('Attendance', err.message, 'info');
           }
         }}
-        onToggleStatus={m => {
-          toggleMemberStatus(m.id);
-          showToast('Status Updated', `Updated status for ${m.name}.`, 'info');
+        onToggleStatus={async m => {
+          try {
+            await toggleMemberStatus(m.id);
+            showToast('Status Updated', `Updated status for ${m.name}.`, 'info');
+          } catch (err: any) {
+            showToast('Status Update Failed', err?.message || 'Unable to update member status.', 'error');
+          }
         }}
       />
 

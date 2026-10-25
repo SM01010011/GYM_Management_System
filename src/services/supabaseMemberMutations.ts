@@ -71,7 +71,7 @@ export async function createSupabaseMember(input: CreateMemberInput): Promise<Me
     .insert({
       full_name: fullName,
       phone,
-      email: input.email?.trim() || null,
+      email: input.email?.trim().toLowerCase() || null,
       date_of_birth: input.dateOfBirth || null,
       gender: input.gender || null,
       address: input.address?.trim() || null,
@@ -101,7 +101,7 @@ export async function updateSupabaseMember(
 
   if (updates.name !== undefined) payload.full_name = updates.name.trim();
   if (updates.phone !== undefined) payload.phone = updates.phone.trim();
-  if (updates.email !== undefined) payload.email = updates.email.trim() || null;
+  if (updates.email !== undefined) payload.email = updates.email.trim().toLowerCase() || null;
   if (updates.dateOfBirth !== undefined) payload.date_of_birth = updates.dateOfBirth || null;
   if (updates.gender !== undefined) payload.gender = updates.gender || null;
   if (updates.address !== undefined) payload.address = updates.address?.trim() || null;
