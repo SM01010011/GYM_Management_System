@@ -71,7 +71,7 @@ export async function createSupabaseMember(input: CreateMemberInput): Promise<Me
     .insert({
       full_name: fullName,
       phone,
-      email: input.email?.trim().toLowerCase() || null,
+      email: input.email?.trim() || null,
       date_of_birth: input.dateOfBirth || null,
       gender: input.gender || null,
       address: input.address?.trim() || null,
@@ -101,7 +101,7 @@ export async function updateSupabaseMember(
 
   if (updates.name !== undefined) payload.full_name = updates.name.trim();
   if (updates.phone !== undefined) payload.phone = updates.phone.trim();
-  if (updates.email !== undefined) payload.email = updates.email.trim().toLowerCase() || null;
+  if (updates.email !== undefined) payload.email = updates.email.trim() || null;
   if (updates.dateOfBirth !== undefined) payload.date_of_birth = updates.dateOfBirth || null;
   if (updates.gender !== undefined) payload.gender = updates.gender || null;
   if (updates.address !== undefined) payload.address = updates.address?.trim() || null;
@@ -133,7 +133,7 @@ export async function toggleSupabaseMemberStatus(id: string): Promise<Member> {
 
   if (readError) throw new Error(`Unable to load member status: ${readError.message}`);
 
-  const nextStatus = existing.status === 'active' ? 'inactive' : 'active';
+  const nextStatus = existing.status === 'active' ? 'suspended' : 'active';
 
   const { data, error } = await supabase
     .from('members')
@@ -153,14 +153,15 @@ export async function deleteSupabaseMember(id: string): Promise<void> {
     throw new Error('Member ID is required.');
   }
 
-  // Members have dependent records (memberships, payments, attendance,
-  // trainer assignments and workout plans). Delete them transactionally in
-  // PostgreSQL so a foreign-key constraint cannot leave a half-deleted member.
-  const { error } = await supabase.rpc('delete_member_cascade', {
-    p_member_id: memberId,
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !sessionData.session) {
+    throw new Error('Your owner session has expired. Please sign in again.');
+  }
+
+  const { data, error } = await supabase.functions.invoke('delete-member', {
+    body: { member_id: memberId },
   });
 
-  if (error) {
-    throw new Error(`Unable to delete member: ${error.message}`);
-  }
+  if (error) throw new Error(error.message || 'Unable to delete member.');
+  if (!data?.success) throw new Error(data?.error || 'Unable to delete member.');
 }

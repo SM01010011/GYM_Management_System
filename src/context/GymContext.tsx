@@ -25,6 +25,7 @@ import {
   toggleSupabaseMemberStatus,
   deleteSupabaseMember,
 } from '../services/supabaseMemberMutations';
+import { deleteSupabaseMember } from '../services/supabaseMemberMutations';
 import {
   getSupabaseMembershipPlans,
   getSupabaseMemberships,
@@ -41,6 +42,7 @@ import {
   checkOutMemberSupabase,
 } from '../services/supabaseAttendance';
 import { getTodayDateString } from '../utils/dateUtils';
+import { getSupabaseStaff, updateSupabaseStaffPermissions, provisionSupabaseStaffAccount } from '../services/supabaseStaff';
 
 interface GymStats {
   totalMembers: number;
@@ -86,8 +88,6 @@ interface GymContextType {
     recordPaymentNow?: boolean;
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
-    transactionReference?: string;
-    paymentAmount?: number;
   }) => Promise<{ membership: Membership; payment?: Payment }>;
 
   renewMembership: (params: {
@@ -105,8 +105,8 @@ interface GymContextType {
   checkInMember: (memberId: string, gate?: string, authMethod?: string) => Promise<Attendance>;
   checkOutMember: (attendanceId: string) => Promise<Attendance>;
 
-  updateStaffPermissions: (staffId: string, updates: Partial<StaffPermissions>) => StaffPermissions;
-  addStaff: (data: Omit<StaffPermissions, 'updatedAt'>) => StaffPermissions;
+  updateStaffPermissions: (staffId: string, updates: Partial<StaffPermissions>) => Promise<StaffPermissions>;
+  addStaff: (data: Omit<StaffPermissions, 'updatedAt'>) => Promise<{ staff: StaffPermissions; credentials: { email: string; password: string } }>;
 
   createRenewalRequest: (params: { memberId: string; requestedPlanId: string; notes?: string }) => RenewalRequest;
   processRenewalRequest: (requestId: string, approved: boolean) => RenewalRequest;
@@ -132,7 +132,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [history, setHistory] = useState<MembershipHistory[]>(() => gymStorage.getHistory());
-  const [staffList, setStaffList] = useState<StaffPermissions[]>(() => gymStorage.getStaffPermissions());
+  const [staffList, setStaffList] = useState<StaffPermissions[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(() => gymStorage.getActivityLogs());
   const [notifications, setNotifications] = useState<AppNotification[]>(() => gymStorage.getNotifications());
   const [renewalRequests, setRenewalRequests] = useState<RenewalRequest[]>(() => gymStorage.getRenewalRequests());
@@ -148,12 +148,14 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         plansResult,
         attendanceResult,
         paymentsResult,
+        staffResult,
       ] = await Promise.allSettled([
         getSupabaseMembers(),
         getSupabaseMemberships(),
         getSupabaseMembershipPlans(),
         getSupabaseAttendance(),
         getSupabasePayments(),
+        getSupabaseStaff(),
       ]);
 
       const loadedMembers =
@@ -208,6 +210,12 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Failed to load payments from Supabase:', paymentsResult.reason);
       }
 
+      if (staffResult.status === 'fulfilled') {
+        setStaffList(staffResult.value);
+      } else {
+        console.error('Failed to load staff from Supabase:', staffResult.reason);
+      }
+
       // Non-core compatibility domains remain on local storage.
       setHistory(gymStorage.getHistory());
       setStaffList(gymStorage.getStaffPermissions());
@@ -229,7 +237,6 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const currentMonthPrefix = todayStr.slice(0, 7); // e.g. "2026-10"
 
   const activeMemberships = memberships.filter(m => m.status === 'ACTIVE');
-  const activeMemberIds = new Set(activeMemberships.map(m => m.memberId));
   const expiringMemberships = memberships.filter(m => m.status === 'EXPIRING_SOON');
   const expiredMemberships = memberships.filter(m => m.status === 'EXPIRED');
 
@@ -249,7 +256,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const stats: GymStats = {
     totalMembers: members.length,
-    activeMembers: activeMemberIds.size,
+    activeMembers: activeMemberships.length,
     expiringSoon: expiringMemberships.length,
     expiredMembers: expiredMemberships.length,
     monthlyRevenue,
@@ -296,7 +303,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return updated;
   };
 
-  const deleteMember = async (id: string): Promise<void> => {
+  const deleteMember = async (id: string) => {
     await deleteSupabaseMember(id);
     await refreshAll();
   };
@@ -334,10 +341,10 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         memberName: membership.memberName,
         memberCode: membership.memberCode,
         membershipId: membership.id,
-        amount: params.paymentAmount ?? membership.price,
+        amount: membership.price,
         paymentDate: params.startDate,
         paymentMethod: params.paymentMethod || 'UPI',
-        transactionReference: params.transactionReference || `TXN-WRR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+        transactionReference: `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`,
         status: 'PAID',
         recordedBy: params.performedBy || 'Staff',
         notes: `Full payment for ${membership.planName}`,
@@ -435,16 +442,35 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   };
 
-  const updateStaffPermissions = (staffId: string, updates: Partial<StaffPermissions>) => {
-    const s = gymStorage.updateStaffPermissions(staffId, updates);
-    void refreshAll();
-    return s;
+  const updateStaffPermissions = async (staffId: string, updates: Partial<StaffPermissions>) => {
+    const updated = await updateSupabaseStaffPermissions(staffId, updates);
+    await refreshAll();
+    return updated;
   };
 
-  const addStaff = (data: Omit<StaffPermissions, 'updatedAt'>) => {
-    const s = gymStorage.addStaff(data);
-    void refreshAll();
-    return s;
+  const addStaff = async (data: Omit<StaffPermissions, 'updatedAt'>) => {
+    const credentials = await provisionSupabaseStaffAccount({
+      name: data.staffName,
+      email: data.staffEmail,
+      assignedBranch: data.assignedBranch,
+    });
+    await refreshAll();
+    const created = staffList.find(staff => staff.staffId === credentials.staff_id);
+    const staff = created ?? {
+      staffId: credentials.staff_id,
+      staffName: data.staffName,
+      staffEmail: credentials.email,
+      role: 'STAFF' as const,
+      canManageMembers: data.canManageMembers,
+      canManageMemberships: data.canManageMemberships,
+      canRecordPayments: data.canRecordPayments,
+      canManageAttendance: data.canManageAttendance,
+      canViewReports: data.canViewReports,
+      isActive: true,
+      assignedBranch: data.assignedBranch,
+      updatedAt: new Date().toISOString(),
+    };
+    return { staff, credentials: { email: credentials.email, password: credentials.password } };
   };
 
   const createRenewalRequest = (params: {

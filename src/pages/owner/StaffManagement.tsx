@@ -13,6 +13,8 @@ export const StaffManagement: React.FC = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingPermissionsStaffId, setEditingPermissionsStaffId] = useState<string | null>(null);
+  const [generatedCredentials, setGeneratedCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form State for Add Staff
   const [formData, setFormData] = useState({
@@ -35,14 +37,16 @@ export const StaffManagement: React.FC = () => {
     setIsAddModalOpen(true);
   };
 
-  const handleCreateStaff = (e: React.FormEvent) => {
+  const handleCreateStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) {
       addToast('Please provide a name and email for the staff member.', 'error');
       return;
     }
 
-    addStaff({
+    setIsSaving(true);
+    try {
+      const result = await addStaff({
       staffId: `staff-${Date.now()}`,
       staffName: formData.name,
       staffEmail: formData.email,
@@ -54,10 +58,15 @@ export const StaffManagement: React.FC = () => {
       canViewReports: false,
       isActive: true,
       assignedBranch: 'Main Branch'
-    });
-
-    addToast(`Staff account created for ${formData.name}. Default PIN generated.`, 'success');
-    setIsAddModalOpen(false);
+      });
+      setGeneratedCredentials(result.credentials);
+      addToast(`Staff account created for ${formData.name}. Save the one-time password shown below.`, 'success');
+      setIsAddModalOpen(false);
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : 'Unable to create staff account.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleOpenPermissions = (staffId: string) => {
@@ -68,17 +77,21 @@ export const StaffManagement: React.FC = () => {
     }
   };
 
-  const handleSavePermissions = () => {
+  const handleSavePermissions = async () => {
     if (!editingPermissionsStaffId || !currentPerms) return;
-    updateStaffPermissions(editingPermissionsStaffId, {
-      canManageMembers: currentPerms.canManageMembers,
-      canManageMemberships: currentPerms.canManageMemberships,
-      canRecordPayments: currentPerms.canRecordPayments,
-      canManageAttendance: currentPerms.canManageAttendance,
-      canViewReports: currentPerms.canViewReports
-    });
-    addToast('Staff RBAC permissions updated successfully.', 'success');
-    setEditingPermissionsStaffId(null);
+    try {
+      await updateStaffPermissions(editingPermissionsStaffId, {
+        canManageMembers: currentPerms.canManageMembers,
+        canManageMemberships: currentPerms.canManageMemberships,
+        canRecordPayments: currentPerms.canRecordPayments,
+        canManageAttendance: currentPerms.canManageAttendance,
+        canViewReports: currentPerms.canViewReports
+      });
+      addToast('Staff RBAC permissions updated successfully.', 'success');
+      setEditingPermissionsStaffId(null);
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : 'Unable to update staff permissions.', 'error');
+    }
   };
 
   return (
@@ -181,9 +194,13 @@ export const StaffManagement: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => {
-                    updateStaffPermissions(staff.staffId, { isActive: !staff.isActive });
-                    addToast(`Account status for ${staff.staffName} toggled.`, 'info');
+                  onClick={async () => {
+                    try {
+                      await updateStaffPermissions(staff.staffId, { isActive: !staff.isActive });
+                      addToast(`Account status for ${staff.staffName} toggled.`, 'info');
+                    } catch (error) {
+                      addToast(error instanceof Error ? error.message : 'Unable to update staff status.', 'error');
+                    }
                   }}
                   className="text-xs font-mono text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
                 >
@@ -355,6 +372,26 @@ export const StaffManagement: React.FC = () => {
           </div>
         </div>
       )}
+      {generatedCredentials && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-emerald-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Staff Login Created</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Save these credentials now. The password is shown only once.</p>
+            <div className="mt-5 space-y-3">
+              <div className="rounded-xl bg-slate-100 dark:bg-slate-950 p-3">
+                <div className="text-[10px] uppercase font-mono text-slate-500">Email</div>
+                <div className="font-mono text-sm text-slate-900 dark:text-white break-all">{generatedCredentials.email}</div>
+              </div>
+              <div className="rounded-xl bg-slate-100 dark:bg-slate-950 p-3">
+                <div className="text-[10px] uppercase font-mono text-slate-500">Temporary Password</div>
+                <div className="font-mono text-sm text-slate-900 dark:text-white break-all select-all">{generatedCredentials.password}</div>
+              </div>
+            </div>
+            <button onClick={() => setGeneratedCredentials(null)} className="mt-5 w-full py-2.5 rounded-xl bg-[#bc0100] text-white font-bold">I saved the credentials</button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

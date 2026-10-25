@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/common/Toast';
 
 export const AuthLogin: React.FC = () => {
-  const { login, setActiveView } = useAuth();
+  const { login, resetPassword, setActiveView } = useAuth();
   const { showToast } = useToast();
 
   const [email, setEmail] = useState('');
@@ -133,13 +133,20 @@ export const AuthLogin: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      showToast(
-                        'Password Recovery',
-                        'Password recovery will be enabled in the next authentication step.',
-                        'info'
-                      )
-                    }
+                    onClick={async () => {
+                      if (!email.trim()) {
+                        setErrorMessage('Enter your email address first, then choose Forgot password.');
+                        return;
+                      }
+                      try {
+                        await resetPassword(email);
+                        showToast('Password Reset Email Sent', 'Check your inbox for the secure Supabase password reset link.', 'success');
+                      } catch (error) {
+                        const message = error instanceof Error ? error.message : 'Unable to send the reset email.';
+                        setErrorMessage(message);
+                        showToast('Password Recovery Failed', message, 'error');
+                      }
+                    }}
                     className="text-[11px] font-semibold text-[#bc0100] hover:underline cursor-pointer"
                   >
                     Forgot password?

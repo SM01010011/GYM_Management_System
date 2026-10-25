@@ -1,265 +1,220 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * Authentication is backed by Supabase Auth. The frontend never stores
+ * passwords or decides a user's role.
  */
-
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, UserRole } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   currentUser: User | null;
   role: UserRole;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (
-    email: string,
-    password?: string
-  ) => Promise<{ success: boolean; user: User; role: UserRole }>;
+  login: (email: string, password?: string) => Promise<{ success: boolean; user: User; role: UserRole }>;
   logout: () => Promise<void>;
   switchRole: (newRole: UserRole) => void;
   demoLogin: (role: UserRole) => void;
+  resetPassword: (email: string) => Promise<void>;
   activeView: 'public' | 'login' | 'owner' | 'staff' | 'customer';
   setActiveView: (view: 'public' | 'login' | 'owner' | 'staff' | 'customer') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const VIEW_STORAGE_KEY = 'warrior_current_view';
 
-function mapDatabaseRoleToUiRole(databaseRole: string): UserRole {
-  switch (databaseRole) {
-    case 'admin':
-      return 'OWNER';
-    case 'staff':
-      return 'STAFF';
-    case 'trainer':
-      return 'TRAINER';
-    case 'customer':
-    default:
-      return 'CUSTOMER';
+const mapRole = (role: string | null | undefined): UserRole => {
+  switch (role) {
+    case 'admin': return 'OWNER';
+    case 'staff': return 'STAFF';
+    case 'trainer': return 'TRAINER';
+    default: return 'CUSTOMER';
   }
-}
+};
 
-function getViewForRole(role: UserRole): 'owner' | 'staff' | 'customer' {
+const mapProfileToUser = (profile: any, email: string): User => ({
+  uid: profile.id,
+  name: profile.full_name?.trim() || email.split('@')[0],
+  email,
+  phone: profile.phone || undefined,
+  role: mapRole(profile.role),
+  avatarUrl: profile.avatar_url || undefined,
+  createdAt: profile.created_at,
+  updatedAt: profile.updated_at,
+});
+
+const viewForRole = (role: UserRole): 'owner' | 'staff' | 'customer' => {
   if (role === 'OWNER') return 'owner';
-  if (role === 'STAFF') return 'staff';
-
-  // Trainer UI will be added in the next phase.
-  // Until then, trainers receive the least-privileged existing portal.
+  if (role === 'STAFF' || role === 'TRAINER') return 'staff';
   return 'customer';
-}
-
-function profileToUser(profile: {
-  id: string;
-  full_name: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-  role: string;
-  created_at: string;
-  updated_at: string;
-}, email: string): User {
-  return {
-    uid: profile.id,
-    name: profile.full_name || email.split('@')[0],
-    email,
-    phone: profile.phone || undefined,
-    role: mapDatabaseRoleToUiRole(profile.role),
-    avatarUrl: profile.avatar_url || undefined,
-    createdAt: profile.created_at,
-    updatedAt: profile.updated_at,
-  };
-}
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeView, setActiveViewState] = useState<
-    'public' | 'login' | 'owner' | 'staff' | 'customer'
-  >('public');
-
-  const loadProfile = async (currentSession: Session | null) => {
-    if (!currentSession?.user) {
-      setSession(null);
-      setCurrentUser(null);
-      setActiveViewState('public');
-      return;
+  const [activeView, setActiveViewState] = useState<'public' | 'login' | 'owner' | 'staff' | 'customer'>(() => {
+    try {
+      const saved = localStorage.getItem(VIEW_STORAGE_KEY);
+      return saved === 'login' ? 'login' : 'public';
+    } catch {
+      return 'public';
     }
+  });
 
-    setSession(currentSession);
-
+  const loadSessionUser = async (sessionUser: { id: string; email?: string | null }) => {
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('id, full_name, phone, avatar_url, role, created_at, updated_at')
-      .eq('id', currentSession.user.id)
+      .select('id, full_name, phone, avatar_url, role, status, created_at, updated_at')
+      .eq('id', sessionUser.id)
       .single();
 
     if (error || !profile) {
-      console.error('Unable to load application profile:', error);
       await supabase.auth.signOut();
-      setSession(null);
-      setCurrentUser(null);
-      setActiveViewState('login');
-      throw new Error(
-        'Your authentication account exists, but your Warrior Fitness profile is not available yet.'
-      );
+      throw new Error('Your account profile is missing. Please contact the gym administrator.');
     }
 
-    const user = profileToUser(profile, currentSession.user.email || '');
+    if (profile.status !== 'active') {
+      await supabase.auth.signOut();
+      throw new Error('This account is inactive. Please contact the gym administrator.');
+    }
+
+    const user = mapProfileToUser(profile, sessionUser.email || '');
     setCurrentUser(user);
-    setActiveViewState(getViewForRole(user.role));
+    setActiveViewState(viewForRole(user.role));
+    return { success: true, user, role: user.role };
   };
 
   useEffect(() => {
     let mounted = true;
 
-    const initializeAuth = async () => {
-      const { data, error } = await supabase.auth.getSession();
+    void supabase.auth.getSession().then(async ({ data, error }) => {
+      if (!mounted || error || !data.session) return;
+      try {
+        await loadSessionUser(data.session.user);
+      } catch (error) {
+        console.error('Unable to restore Supabase session:', error);
+        if (mounted) {
+          setCurrentUser(null);
+          setActiveViewState('login');
+        }
+      }
+    });
 
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-
-      if (error) {
-        console.error('Failed to restore Supabase session:', error);
-        setIsLoading(false);
+      if (!session) {
+        setCurrentUser(null);
+        if (event === 'SIGNED_OUT') setActiveViewState('public');
         return;
       }
 
-      try {
-        await loadProfile(data.session);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
-      if (!mounted) return;
-
-      try {
-        await loadProfile(nextSession);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
+      // Defer the profile query so auth callbacks never deadlock on Supabase locks.
+      setTimeout(() => {
+        if (mounted) {
+          void loadSessionUser(session.user).catch((error) => {
+            console.error('Unable to load authenticated profile:', error);
+            if (mounted) {
+              setCurrentUser(null);
+              setActiveViewState('login');
+            }
+          });
+        }
+      }, 0);
     });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      listener.subscription.unsubscribe();
     };
   }, []);
 
-  const login = async (
-    email: string,
-    password?: string
-  ): Promise<{ success: boolean; user: User; role: UserRole }> => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const normalizedPassword = password?.trim() || '';
+  useEffect(() => {
+    localStorage.setItem(VIEW_STORAGE_KEY, activeView);
+  }, [activeView]);
 
-    if (!normalizedEmail || !normalizedPassword) {
-      throw new Error('Email and password are required.');
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: normalizedEmail,
-      password: normalizedPassword,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (!data.session || !data.user) {
-      throw new Error('Authentication succeeded but no session was returned.');
-    }
-
-    await loadProfile(data.session);
-
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, full_name, phone, avatar_url, role, created_at, updated_at')
-      .eq('id', data.user.id)
-      .single();
-
-    if (profileError || !profile) {
-      throw new Error('Authenticated user profile could not be loaded.');
-    }
-
-    const user = profileToUser(profile, data.user.email || normalizedEmail);
-
-    return {
-      success: true,
-      user,
-      role: user.role,
-    };
-  };
-
-  const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    setSession(null);
-    setCurrentUser(null);
-    setActiveViewState('public');
-  };
-
-  // Deliberately disabled: role switching must never be a frontend privilege.
-  const switchRole = (_newRole: UserRole) => {
-    console.warn('Role switching is disabled. Roles are controlled by Supabase/PostgreSQL.');
-  };
-
-  const demoLogin = (_role: UserRole) => {
-    console.warn('Demo login is disabled. Use a real Supabase Auth account.');
-  };
-
-  const setActiveView = (
-    view: 'public' | 'login' | 'owner' | 'staff' | 'customer'
-  ) => {
+  const setActiveView = (view: 'public' | 'login' | 'owner' | 'staff' | 'customer') => {
     if ((view === 'owner' || view === 'staff' || view === 'customer') && !currentUser) {
       setActiveViewState('login');
       return;
     }
-
     setActiveViewState(view);
   };
 
-  const role = currentUser?.role || 'CUSTOMER';
-  const isAuthenticated = session !== null && currentUser !== null;
+  const login = async (email: string, password?: string) => {
+    const q = email.trim().toLowerCase();
+    const p = password?.trim() || '';
+    if (!q || !p) throw new Error('Email and password are required.');
 
-  const value = useMemo(
-    () => ({
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: q,
+      password: p,
+    });
+
+    if (error || !data.user) {
+      throw new Error(error?.message || 'Invalid email or password.');
+    }
+
+    return loadSessionUser(data.user);
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setCurrentUser(null);
+    localStorage.removeItem(VIEW_STORAGE_KEY);
+    setActiveViewState('public');
+  };
+
+  const resetPassword = async (email: string) => {
+    const q = email.trim().toLowerCase();
+    if (!q) throw new Error('Enter your account email first.');
+
+    const { error } = await supabase.auth.resetPasswordForEmail(q, {
+      redirectTo: window.location.origin,
+    });
+
+    if (error) throw new Error(error.message);
+  };
+
+  // Kept for backwards compatibility with older UI controls. It never changes
+  // the authenticated role and therefore cannot be used to escalate privileges.
+  const switchRole = (newRole: UserRole) => {
+    if (!currentUser) {
+      setActiveViewState('login');
+      return;
+    }
+    if (newRole !== currentUser.role) {
+      console.warn('Role switching is disabled for security. Current role:', currentUser.role);
+      return;
+    }
+    setActiveViewState(viewForRole(currentUser.role));
+  };
+
+  const demoLogin = (role: UserRole) => switchRole(role);
+
+  const role = currentUser?.role || 'CUSTOMER';
+  const isAuthenticated = currentUser !== null;
+
+  return (
+    <AuthContext.Provider value={{
       currentUser,
       role,
       isAuthenticated,
-      isLoading,
       login,
       logout,
       switchRole,
       demoLogin,
+      resetPassword,
       activeView,
       setActiveView,
-    }),
-    [currentUser, role, isAuthenticated, isLoading, activeView]
+    }}>
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };

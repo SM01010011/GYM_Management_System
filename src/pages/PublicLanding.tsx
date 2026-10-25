@@ -101,8 +101,6 @@ export const PublicLanding: React.FC = () => {
         startDate: new Date().toISOString().slice(0, 10),
         recordPaymentNow: true,
         paymentMethod: paymentMethod === 'NET_BANKING' ? 'BANK_TRANSFER' : paymentMethod,
-        transactionReference: txnRef,
-        paymentAmount: totalAmount,
       });
 
       // Confetti burst!
@@ -399,13 +397,13 @@ export const PublicLanding: React.FC = () => {
 
                       <button
                         type="button"
-                        onClick={async () => {
+                        onClick={() => {
                           if (!activeMembershipForPlan) return;
                           const payment = payments.find(p => p.membershipId === activeMembershipForPlan.id && p.status === 'PAID');
                           if (payment) {
-                            await undoPayment(payment.id);
+                            undoPayment(payment.id);
                           } else {
-                            await cancelMembership(activeMembershipForPlan.id);
+                            cancelMembership(activeMembershipForPlan.id);
                           }
                           showToast('Payment Undone', `Payment for ${plan.name} has been reversed. The purchase button is now unlocked!`, 'info');
                         }}
@@ -1130,8 +1128,8 @@ export const PublicLanding: React.FC = () => {
                 {/* 4. Undo Payment & Unlock Plan */}
                 <button
                   type="button"
-                  onClick={async () => {
-                    await undoPayment(receiptData.txnId);
+                  onClick={() => {
+                    undoPayment(receiptData.txnId);
                     setReceiptData(null);
                     showToast('Payment Undone', `Payment for ${receiptData.planName} has been reversed. The purchase button is now unlocked!`, 'info');
                   }}

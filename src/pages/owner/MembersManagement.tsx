@@ -196,39 +196,39 @@ export const MembersManagement: React.FC = () => {
     }
   };
 
-  const handleSaveEdit = async (e: React.FormEvent) => {
+  const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
-
-    try {
-      await updateMember(editingMember.id, {
-        name: formName,
-        phone: formPhone,
-        email: formEmail,
-        gender: formGender,
-        dateOfBirth: formDob,
-        emergencyContact: formEmergency,
-        address: formAddress,
-      });
-      setEditMemberModalOpen(false);
-      showToast('Member Updated', `Saved profile details for ${formName}.`, 'success');
-    } catch (err: any) {
-      showToast('Update Failed', err?.message || 'Unable to update member.', 'error');
-    }
+    updateMember(editingMember.id, {
+      name: formName,
+      phone: formPhone,
+      email: formEmail,
+      gender: formGender,
+      dateOfBirth: formDob,
+      emergencyContact: formEmergency,
+      address: formAddress,
+    });
+    setEditMemberModalOpen(false);
+    showToast('Member Updated', `Saved profile details for ${formName}.`, 'success');
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     if (!deleteConfirmMember) return;
     const member = deleteConfirmMember;
-
-    try {
-      await deleteMember(member.id);
-      setDeleteConfirmMember(null);
-      showToast('Member Deleted', `${member.name} was removed from the live database.`, 'success');
-    } catch (err: any) {
-      showToast('Delete Failed', err?.message || 'Unable to delete member.', 'error');
-    }
+    deleteMember(member.id);
+    setDeleteConfirmMember(null);
+    showToast('Deleting Member', `Removing ${member.name} from the live database...`, 'warning');
   };
+
+  useEffect(() => {
+    const onDeleteError = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      showToast('Delete Failed', detail || 'Unable to delete member.', 'error');
+    };
+
+    window.addEventListener('warrior:member-delete-error', onDeleteError);
+    return () => window.removeEventListener('warrior:member-delete-error', onDeleteError);
+  }, [showToast]);
 
   return (
     <div className="space-y-6">
@@ -449,9 +449,9 @@ export const MembersManagement: React.FC = () => {
                           </button>
 
                           <button
-                            onClick={async () => {
+                            onClick={() => {
                               try {
-                                await renewMembership({
+                                renewMembership({
                                   memberId: member.id,
                                   recordPaymentNow: true,
                                   performedBy: 'Staff One-Click',
@@ -541,9 +541,9 @@ export const MembersManagement: React.FC = () => {
           setDetailMember(null);
           handleOpenEdit(m);
         }}
-        onRenew={async m => {
+        onRenew={m => {
           try {
-            await renewMembership({ memberId: m.id, recordPaymentNow: true });
+            renewMembership({ memberId: m.id, recordPaymentNow: true });
             showToast('Pass Renewed! 🎉', `Extended pass for ${m.name}.`, 'success');
           } catch (err: any) {
             showToast('Renewal Failed', err.message, 'error');
@@ -553,40 +553,32 @@ export const MembersManagement: React.FC = () => {
           setDetailMember(null);
           setAssignMember(m);
         }}
-        onRecordPayment={async m => {
-          try {
-            await recordPayment({
-              memberId: m.id,
-              memberName: m.name,
-              memberCode: m.memberCode,
-              amount: 3500,
-              paymentDate: new Date().toISOString().slice(0, 10),
-              paymentMethod: 'UPI',
-              transactionReference: `TXN-WRR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
-              status: 'PAID',
-              recordedBy: 'Owner',
-              notes: 'Manual desk payment recorded',
-            });
-            showToast('Payment Recorded', `₹3,500 recorded for ${m.name}.`, 'success');
-          } catch (err: any) {
-            showToast('Payment Failed', err?.message || 'Unable to record payment.', 'error');
-          }
+        onRecordPayment={m => {
+          recordPayment({
+            memberId: m.id,
+            memberName: m.name,
+            memberCode: m.memberCode,
+            amount: 3500,
+            paymentDate: new Date().toISOString().slice(0, 10),
+            paymentMethod: 'UPI',
+            transactionReference: `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`,
+            status: 'PAID',
+            recordedBy: 'Owner',
+            notes: 'Manual desk payment recorded',
+          });
+          showToast('Payment Recorded', `₹3,500 recorded for ${m.name}.`, 'success');
         }}
-        onMarkAttendance={async m => {
+        onMarkAttendance={m => {
           try {
-            await checkInMember(m.id);
+            checkInMember(m.id);
             showToast('Check-In Successful', `${m.name} checked in at turnstile gate.`, 'success');
           } catch (err: any) {
             showToast('Attendance', err.message, 'info');
           }
         }}
-        onToggleStatus={async m => {
-          try {
-            await toggleMemberStatus(m.id);
-            showToast('Status Updated', `Updated status for ${m.name}.`, 'info');
-          } catch (err: any) {
-            showToast('Status Update Failed', err?.message || 'Unable to update member status.', 'error');
-          }
+        onToggleStatus={m => {
+          toggleMemberStatus(m.id);
+          showToast('Status Updated', `Updated status for ${m.name}.`, 'info');
         }}
       />
 
