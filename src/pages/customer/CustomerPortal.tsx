@@ -88,7 +88,7 @@ export const CustomerPortal: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6">
+    <div className="w-full space-y-6">
       {/* Quick Navigation Strip: Brand Website & Sign Out buttons */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
         <div className="flex items-center gap-2">

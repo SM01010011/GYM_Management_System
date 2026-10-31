@@ -38,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
   const visibleItems = navItems.filter(item => item.roles.includes(role));
 
   return (
-    <aside className="hidden md:flex flex-col w-64 shrink-0 bg-white dark:bg-[#180e0d] border-r border-slate-200 dark:border-white/10 min-h-[calc(100vh-4rem)] p-4 transition-colors">
+    <aside className="hidden md:flex flex-col md:w-56 lg:w-64 shrink-0 bg-white dark:bg-[#180e0d] border-r border-slate-200 dark:border-white/10 min-h-[calc(100vh-4rem)] p-3 lg:p-4 transition-colors">
       <div className="space-y-1 flex-1">
         <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
           {isOwner ? 'Executive Governance' : 'Staff Operations'}

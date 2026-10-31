@@ -87,24 +87,25 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onQuickAction }) => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#180e0d]/95 backdrop-blur-md border-b border-slate-200 dark:border-white/10 shadow-xs w-full transition-colors">
-      <div className="flex justify-between items-center w-full px-4 lg:px-8 h-16 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center w-full px-2.5 sm:px-4 lg:px-8 h-16 max-w-7xl mx-auto">
         {/* Left: Brand Logo */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
           <button
             onClick={() => setActiveView('public')}
-            className="flex items-center gap-2.5 text-left group cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2.5 text-left group cursor-pointer"
             title="Return to Brand Website"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#bc0100] flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform duration-150">
-              <span className="material-symbols-outlined text-xl">fitness_center</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#bc0100] flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform duration-150 shrink-0">
+              <span className="material-symbols-outlined text-lg sm:text-xl">fitness_center</span>
             </div>
-            <div>
-              <div className="font-headline font-extrabold text-base text-[#bc0100] tracking-tight leading-none flex items-center gap-1.5">
+            <div className="flex flex-col text-left">
+              <div className="font-headline font-black text-sm sm:text-base text-[#bc0100] tracking-tight leading-none flex items-center gap-1">
                 <span>WARRIOR</span>
                 <span className="text-slate-900 dark:text-white italic">FITNESS</span>
               </div>
-              <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 dark:text-gray-400 mt-0.5">
-                Kinetic Labs Ecosystem
+              <div className="text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-[#603e39] dark:text-gray-400 mt-0.5 font-mono leading-tight">
+                <span>KINETIC LABS</span>
+                <span className="block">ECOSYSTEM</span>
               </div>
             </div>
           </button>
@@ -318,21 +319,29 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onQuickAction }) => {
 
           {/* Public Website View - NOT Logged In: Show Professional Sign In & Join CTAs */}
           {!currentUser && activeView !== 'login' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <button
                 onClick={() => setActiveView('login')}
-                className="px-3 sm:px-4 py-2 rounded-xl border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:border-[#bc0100] hover:text-[#bc0100] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                className="px-2 sm:px-3.5 py-1.5 rounded-xl border border-slate-300 dark:border-white/10 bg-white/70 dark:bg-[#1a0e0d] text-slate-800 dark:text-white hover:border-[#bc0100] hover:text-[#bc0100] transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-xs shrink-0"
+                title="Access Member, Trainer or Admin Portal"
               >
-                <span className="material-symbols-outlined text-base text-[#bc0100]">lock</span>
-                <span>Portal Sign In</span>
+                <span className="material-symbols-outlined text-base sm:text-lg text-[#bc0100]">lock</span>
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="text-[9px] sm:text-xs font-bold text-slate-800 dark:text-white">Portal</span>
+                  <span className="text-[9px] sm:text-xs font-bold text-slate-800 dark:text-white">Sign In</span>
+                </div>
               </button>
 
               <button
                 onClick={() => scrollToSection('pricing-tiers')}
-                className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#bc0100] hover:bg-[#eb0000] text-white text-xs font-bold shadow-md shadow-red-600/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                className="px-2 sm:px-3.5 py-1.5 rounded-xl bg-[#bc0100] hover:bg-[#eb0000] text-white shadow-md shadow-red-600/20 active:scale-95 transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shrink-0"
+                title="View Membership Plans"
               >
-                <span>Join Now</span>
-                <span className="material-symbols-outlined text-sm hidden sm:inline">arrow_forward</span>
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="text-[9px] sm:text-xs font-black text-white">Join</span>
+                  <span className="text-[9px] sm:text-xs font-black text-white">Now</span>
+                </div>
+                <span className="material-symbols-outlined text-sm sm:text-base text-white">arrow_forward</span>
               </button>
             </div>
           )}

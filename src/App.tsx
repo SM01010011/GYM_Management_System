@@ -46,9 +46,9 @@ const AppContent: React.FC = () => {
   // If user is on public landing page
   if (activeView === 'public') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200 overflow-x-hidden w-full max-w-full">
         <TopNavBar />
-        <main className="flex-1">
+        <main className="flex-1 w-full max-w-full overflow-x-hidden">
           <PublicLanding />
         </main>
       </div>
@@ -58,9 +58,9 @@ const AppContent: React.FC = () => {
   // If user is on authentication gateway
   if (activeView === 'login' || !currentUser) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200 overflow-x-hidden w-full max-w-full">
         <TopNavBar />
-        <main className="flex-1">
+        <main className="flex-1 w-full max-w-full overflow-x-hidden">
           <AuthLogin />
         </main>
         <AppFooter />
@@ -71,9 +71,9 @@ const AppContent: React.FC = () => {
   // 1. CUSTOMER PORTAL
   if (role === 'CUSTOMER') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200 overflow-x-hidden w-full max-w-full">
         <TopNavBar />
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 md:pb-8 overflow-x-hidden">
           <CustomerPortal />
         </main>
         <AppFooter isPortal />
@@ -85,12 +85,12 @@ const AppContent: React.FC = () => {
   // 2. STAFF DESK EXPERIENCE
   if (role === 'STAFF') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200 overflow-x-hidden w-full max-w-full">
         <TopNavBar />
-        <div className="flex-1 flex w-full">
+        <div className="flex-1 flex w-full overflow-x-hidden">
           <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
-          <div className="flex-1 flex flex-col min-w-0">
-            <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full overflow-hidden">
+          <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+            <main className="flex-1 px-3 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full overflow-x-hidden">
               {currentTab === 'overview' && <StaffDashboard />}
               {currentTab === 'members' && <MembersManagement />}
               {currentTab === 'attendance' && (
@@ -121,16 +121,16 @@ const AppContent: React.FC = () => {
 
   // 3. OWNER EXECUTIVE PORTAL
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#140b0a] text-slate-900 dark:text-[#fceae7] flex flex-col font-sans transition-colors duration-200 overflow-x-hidden w-full max-w-full">
       <TopNavBar />
 
-      <div className="flex-1 flex w-full">
+      <div className="flex-1 flex w-full overflow-x-hidden">
         {/* Desktop Sidebar */}
         <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
 
         {/* Dynamic Tab Views */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+          <main className="flex-1 px-3 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full overflow-x-hidden">
             {currentTab === 'overview' && (
               <OwnerDashboard 
                 onNavigateTab={setCurrentTab}

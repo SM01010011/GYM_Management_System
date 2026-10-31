@@ -131,71 +131,71 @@ export const PublicLanding: React.FC = () => {
   };
 
   return (
-    <div className="space-y-16 pb-20">
+    <div className="space-y-16 pb-20 w-full max-w-full overflow-x-hidden">
       {/* HERO SECTION */}
-      <section className="relative bg-white dark:bg-[#150c0b] border-b border-slate-200 dark:border-white/10 overflow-hidden py-14 lg:py-24 px-4 lg:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#ffe9e6] dark:bg-red-950/40 border border-[#ebbbb4]/60 dark:border-red-900/40 text-[#bc0100] text-xs font-bold font-label-caps">
-              <span className="material-symbols-outlined text-sm">bolt</span>
+      <section className="relative bg-white dark:bg-[#140b0a] border-b border-slate-200 dark:border-white/10 overflow-hidden pt-8 pb-12 sm:py-14 lg:py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <div className="lg:col-span-7 space-y-5 sm:space-y-6">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#200e0c] dark:bg-[#200e0c] border border-red-900/40 text-[#bc0100] text-[10px] sm:text-xs font-bold font-mono tracking-wider">
+              <span className="material-symbols-outlined text-sm text-[#bc0100]">bolt</span>
               <span>24/7 BIOMETRIC RECOGNITION & KINETIC PERFORMANCE</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-headline font-black text-[#2b1613] dark:text-white tracking-tight leading-tight uppercase">
-              FORGE <span className="text-[#bc0100] underline decoration-[#eb0000] decoration-4">UNBREAKABLE</span> STRENGTH & MASTERY
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-headline font-black text-[#2b1613] dark:text-white tracking-tight leading-tight uppercase">
+              FORGE <span className="text-[#bc0100] underline decoration-[#bc0100] decoration-2 underline-offset-4">UNBREAKABLE</span><br />STRENGTH & MASTERY
             </h1>
 
-            <p className="text-base sm:text-lg text-[#603e39] dark:text-gray-300 max-w-xl leading-relaxed">
+            <p className="text-sm sm:text-lg text-[#603e39] dark:text-gray-300 max-w-xl leading-relaxed">
               High-octane technical conditioning engineered with surgical precision. Synchronized RFID turnstile credentials, sub-zero cryotherapy recovery, and Olympic strength training.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex items-center gap-2.5 sm:gap-4 pt-2 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => {
                   const el = document.getElementById('pricing-tiers');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-6 py-3.5 bg-[#bc0100] hover:bg-[#eb0000] text-white font-headline text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-red-600/25 transition-all active:scale-95 flex items-center gap-2"
+                className="px-4 sm:px-6 py-3 bg-[#bc0100] hover:bg-[#eb0000] text-white font-headline text-[11px] sm:text-xs font-bold rounded-xl shadow-lg shadow-red-600/25 transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
               >
                 <span>VIEW MEMBERSHIP PLANS</span>
-                <span className="material-symbols-outlined text-lg">arrow_downward</span>
+                <span className="material-symbols-outlined text-base">arrow_downward</span>
               </button>
 
               <button
                 onClick={() => setTourModalOpen(true)}
-                className="px-5 py-3.5 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white font-semibold text-xs sm:text-sm border border-[#ebbbb4]/60 dark:border-white/10 rounded-xl hover:border-[#bc0100] transition-all flex items-center gap-2"
+                className="px-3.5 sm:px-5 py-3 bg-slate-100 dark:bg-[#201211] text-[#2b1613] dark:text-white font-semibold text-[11px] sm:text-xs border border-slate-300 dark:border-white/10 rounded-xl hover:border-[#bc0100] transition-all flex items-center gap-1.5 shrink-0"
               >
-                <span className="material-symbols-outlined text-[#bc0100] text-lg">play_circle</span>
+                <span className="material-symbols-outlined text-[#bc0100] text-base">play_circle</span>
                 <span>Take Virtual 3D Tour</span>
               </button>
             </div>
 
             {/* Telemetry Stats Strip */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-[#ebbbb4]/30 dark:border-white/10 max-w-lg">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-[#ebbbb4]/30 dark:border-white/10 max-w-lg">
               <div>
-                <div className="text-2xl sm:text-3xl font-headline font-extrabold text-[#2b1613] dark:text-white">99.8%</div>
-                <div className="text-[11px] font-bold text-[#603e39] dark:text-gray-400 uppercase mt-0.5">Turnstile Uptime</div>
+                <div className="text-2xl sm:text-3xl font-headline font-black text-[#2b1613] dark:text-white">99.8%</div>
+                <div className="text-[10px] sm:text-xs font-bold text-[#603e39] dark:text-gray-400 uppercase mt-1 font-mono tracking-wider">Turnstile Uptime</div>
               </div>
               <div>
-                <div className="text-2xl sm:text-3xl font-headline font-extrabold text-[#bc0100]">48ms</div>
-                <div className="text-[11px] font-bold text-[#603e39] dark:text-gray-400 uppercase mt-0.5">RFID Latency</div>
+                <div className="text-2xl sm:text-3xl font-headline font-black text-[#bc0100]">48ms</div>
+                <div className="text-[10px] sm:text-xs font-bold text-[#603e39] dark:text-gray-400 uppercase mt-1 font-mono tracking-wider">RFID Latency</div>
               </div>
               <div>
-                <div className="text-2xl sm:text-3xl font-headline font-extrabold text-[#2b1613] dark:text-white">24/7</div>
-                <div className="text-[11px] font-bold text-[#603e39] dark:text-gray-400 uppercase mt-0.5">Downtown Lab</div>
+                <div className="text-2xl sm:text-3xl font-headline font-black text-[#2b1613] dark:text-white">24/7</div>
+                <div className="text-[10px] sm:text-xs font-bold text-[#603e39] dark:text-gray-400 uppercase mt-1 font-mono tracking-wider">Downtown Lab</div>
               </div>
             </div>
           </div>
 
           {/* Hero Visual Card */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative mt-6 lg:mt-0">
             <div className="rounded-2xl overflow-hidden border border-[#ebbbb4]/40 dark:border-white/10 shadow-2xl bg-white dark:bg-[#1a0f0e] relative group">
               <img
                 src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800"
                 alt="Warrior Fitness High Performance Floor"
-                className="w-full h-80 sm:h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-72 sm:h-96 object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="p-5 bg-white/95 dark:bg-[#1a0f0e]/95 backdrop-blur border-t border-[#ebbbb4]/40 dark:border-white/10 flex items-center justify-between">
+              <div className="hidden sm:flex p-5 bg-white/95 dark:bg-[#1a0f0e]/95 backdrop-blur border-t border-[#ebbbb4]/40 dark:border-white/10 items-center justify-between">
                 <div>
                   <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
                     LIVE TELEMETRY
