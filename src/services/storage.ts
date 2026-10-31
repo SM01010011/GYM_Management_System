@@ -912,6 +912,22 @@ export class GymStorageService {
     localStorage.removeItem(STORAGE_KEYS.INITIALIZED);
     this.initSeedData();
   }
+
+  public resetSeedData(): void {
+    this.resetToSeed();
+  }
+
+  public checkInMember(memberId: string, gate?: string, authMethod?: string): Attendance {
+    return this.markCheckIn(memberId, gate, 'Staff', authMethod);
+  }
+
+  public checkOutMember(attendanceId: string): Attendance {
+    return this.markCheckOut(attendanceId);
+  }
+
+  public createStaff(staffData: Omit<StaffPermissions, 'updatedAt'>): StaffPermissions {
+    return this.addStaff(staffData);
+  }
 }
 
 export const gymStorage = new GymStorageService();

@@ -18,30 +18,9 @@ import {
   GymSettings
 } from '../types';
 import { gymStorage } from '../services/storage';
-import { getSupabaseMembers } from '../services/supabaseMembers';
-import {
-  createSupabaseMember,
-  updateSupabaseMember,
-  toggleSupabaseMemberStatus,
-  deleteSupabaseMember,
-} from '../services/supabaseMemberMutations';
-import {
-  getSupabaseMembershipPlans,
-  getSupabaseMemberships,
-  createSupabaseMembership,
-  renewSupabaseMembership,
-  cancelSupabaseMembership,
-  createSupabaseMembershipPlan,
-  updateSupabaseMembershipPlan,
-} from '../services/supabaseMemberships';
-import { getSupabasePayments, createSupabasePayment, refundSupabasePayment } from '../services/supabasePayments';
-import {
-  getSupabaseAttendance,
-  checkInMemberSupabase,
-  checkOutMemberSupabase,
-} from '../services/supabaseAttendance';
+import { firestoreGym } from '../services/firestoreService';
 import { getTodayDateString } from '../utils/dateUtils';
-import { getSupabaseStaff, updateSupabaseStaffPermissions, provisionSupabaseStaffAccount } from '../services/supabaseStaff';
+import { useAuth } from './AuthContext';
 
 interface GymStats {
   totalMembers: number;
@@ -72,13 +51,13 @@ interface GymContextType {
   refreshAll: () => void;
 
   // Actions
-  addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Member>;
-  updateMember: (id: string, updates: Partial<Member>) => Promise<Member>;
-  toggleMemberStatus: (id: string) => Promise<Member>;
-  deleteMember: (id: string) => Promise<void>;
+  addMember: (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => Member;
+  updateMember: (id: string, updates: Partial<Member>) => Member;
+  toggleMemberStatus: (id: string) => Member;
+  deleteMember: (id: string) => void;
 
-  addPlan: (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => Promise<MembershipPlan>;
-  updatePlan: (id: string, updates: Partial<MembershipPlan>) => Promise<MembershipPlan>;
+  addPlan: (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => MembershipPlan;
+  updatePlan: (id: string, updates: Partial<MembershipPlan>) => MembershipPlan;
 
   assignMembership: (params: {
     memberId: string;
@@ -87,7 +66,7 @@ interface GymContextType {
     recordPaymentNow?: boolean;
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
-  }) => Promise<{ membership: Membership; payment?: Payment }>;
+  }) => { membership: Membership; payment?: Payment };
 
   renewMembership: (params: {
     memberId: string;
@@ -95,17 +74,17 @@ interface GymContextType {
     recordPaymentNow?: boolean;
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
-  }) => Promise<{ membership: Membership; payment?: Payment }>;
+  }) => { membership: Membership; payment?: Payment };
 
-  recordPayment: (data: Omit<Payment, 'id' | 'createdAt'>) => Promise<Payment>;
-  undoPayment: (paymentIdOrTxn: string, performedBy?: string) => Promise<{ success: boolean; message: string }>;
-  cancelMembership: (membershipId: string, performedBy?: string) => Promise<void>;
+  recordPayment: (data: Omit<Payment, 'id' | 'createdAt'>) => Payment;
+  undoPayment: (paymentIdOrTxn: string, performedBy?: string) => { success: boolean; message: string };
+  cancelMembership: (membershipId: string, performedBy?: string) => void;
 
-  checkInMember: (memberId: string, gate?: string, authMethod?: string) => Promise<Attendance>;
-  checkOutMember: (attendanceId: string) => Promise<Attendance>;
+  checkInMember: (memberId: string, gate?: string, authMethod?: string) => Attendance;
+  checkOutMember: (attendanceId: string) => Attendance;
 
-  updateStaffPermissions: (staffId: string, updates: Partial<StaffPermissions>) => Promise<StaffPermissions>;
-  addStaff: (data: Omit<StaffPermissions, 'updatedAt'>) => Promise<{ staff: StaffPermissions; credentials: { email: string; password: string } }>;
+  updateStaffPermissions: (staffId: string, updates: Partial<StaffPermissions>) => StaffPermissions;
+  addStaff: (data: Omit<StaffPermissions, 'updatedAt'>) => StaffPermissions;
 
   createRenewalRequest: (params: { memberId: string; requestedPlanId: string; notes?: string }) => RenewalRequest;
   processRenewalRequest: (requestId: string, approved: boolean) => RenewalRequest;
@@ -120,115 +99,105 @@ interface GymContextType {
 const GymContext = createContext<GymContextType | undefined>(undefined);
 
 export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [loading, setLoading] = useState(true);
+  const { currentUser, isAuthenticated, role, isLoading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  // Members are now read from Supabase.
-  // Other application data remains on gymStorage temporarily
-  // while we migrate each domain incrementally.
-  const [members, setMembers] = useState<Member[]>([]);
-  const [memberships, setMemberships] = useState<Membership[]>([]);
-  const [plans, setPlans] = useState<MembershipPlan[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [members, setMembers] = useState<Member[]>(() => gymStorage.getMembers());
+  const [memberships, setMemberships] = useState<Membership[]>(() => gymStorage.getMemberships());
+  const [plans, setPlans] = useState<MembershipPlan[]>(() => gymStorage.getPlans());
+  const [payments, setPayments] = useState<Payment[]>(() => gymStorage.getPayments());
+  const [attendance, setAttendance] = useState<Attendance[]>(() => gymStorage.getAttendance());
   const [history, setHistory] = useState<MembershipHistory[]>(() => gymStorage.getHistory());
-  const [staffList, setStaffList] = useState<StaffPermissions[]>([]);
+  const [staffList, setStaffList] = useState<StaffPermissions[]>(() => gymStorage.getStaffPermissions());
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(() => gymStorage.getActivityLogs());
   const [notifications, setNotifications] = useState<AppNotification[]>(() => gymStorage.getNotifications());
   const [renewalRequests, setRenewalRequests] = useState<RenewalRequest[]>(() => gymStorage.getRenewalRequests());
   const [settings, setSettings] = useState<GymSettings>(() => gymStorage.getSettings());
 
-  const refreshAll = useCallback(async () => {
+  const refreshAll = useCallback(() => {
     setLoading(true);
-
-    try {
-      const [
-        membersResult,
-        membershipsResult,
-        plansResult,
-        attendanceResult,
-        paymentsResult,
-        staffResult,
-      ] = await Promise.allSettled([
-        getSupabaseMembers(),
-        getSupabaseMemberships(),
-        getSupabaseMembershipPlans(),
-        getSupabaseAttendance(),
-        getSupabasePayments(),
-        getSupabaseStaff(),
-      ]);
-
-      const loadedMembers =
-        membersResult.status === 'fulfilled' ? membersResult.value : [];
-
-      if (membersResult.status === 'fulfilled') {
-        setMembers(loadedMembers);
-      } else {
-        console.error('Failed to load members from Supabase:', membersResult.reason);
-      }
-
-      if (membershipsResult.status === 'fulfilled') {
-        setMemberships(membershipsResult.value);
-      } else {
-        console.error('Failed to load memberships from Supabase:', membershipsResult.reason);
-      }
-
-      if (plansResult.status === 'fulfilled') {
-        setPlans(plansResult.value);
-      } else {
-        console.error('Failed to load membership plans from Supabase:', plansResult.reason);
-      }
-
-      if (attendanceResult.status === 'fulfilled') {
-        const memberMap = new Map(loadedMembers.map(member => [member.id, member]));
-
-        setAttendance(
-          attendanceResult.value.map(record => {
-            const member = memberMap.get(record.member_id);
-
-            return {
-              id: record.id,
-              memberId: record.member_id,
-              memberName: member?.name ?? 'Unknown member',
-              memberCode: member?.memberCode ?? `#${record.member_id.slice(0, 8)}`,
-              checkIn: record.checked_in_at,
-              ...(record.checked_out_at ? { checkOut: record.checked_out_at } : {}),
-              markedBy: record.recorded_by ?? 'Staff',
-              gate: 'Supabase attendance',
-              status: record.checked_out_at ? 'CHECKED_OUT' : 'CHECKED_IN',
-              createdAt: record.created_at,
-            };
-          })
-        );
-      } else {
-        console.error('Failed to load attendance from Supabase:', attendanceResult.reason);
-      }
-
-      if (paymentsResult.status === 'fulfilled') {
-        setPayments(paymentsResult.value);
-      } else {
-        console.error('Failed to load payments from Supabase:', paymentsResult.reason);
-      }
-
-      if (staffResult.status === 'fulfilled') {
-        setStaffList(staffResult.value);
-      } else {
-        console.error('Failed to load staff from Supabase:', staffResult.reason);
-      }
-
-      // Non-core compatibility domains remain on local storage.
-      setHistory(gymStorage.getHistory());
-      setActivityLogs(gymStorage.getActivityLogs());
-      setNotifications(gymStorage.getNotifications());
-      setRenewalRequests(gymStorage.getRenewalRequests());
-      setSettings(gymStorage.getSettings());
-    } finally {
-      setLoading(false);
-    }
+    setMembers(gymStorage.getMembers());
+    setMemberships(gymStorage.getMemberships());
+    setPlans(gymStorage.getPlans());
+    setPayments(gymStorage.getPayments());
+    setAttendance(gymStorage.getAttendance());
+    setHistory(gymStorage.getHistory());
+    setStaffList(gymStorage.getStaffPermissions());
+    setActivityLogs(gymStorage.getActivityLogs());
+    setNotifications(gymStorage.getNotifications());
+    setRenewalRequests(gymStorage.getRenewalRequests());
+    setSettings(gymStorage.getSettings());
+    setLoading(false);
   }, []);
 
+  // Connect to Cloud Firestore with realtime onSnapshot listeners
   useEffect(() => {
-    void refreshAll();
-  }, [refreshAll]);
+    // 1. Public listeners (always accessible)
+    const unsubPlans = firestoreGym.subscribeToPlans(remotePlans => {
+      if (remotePlans && remotePlans.length > 0) {
+        setPlans(remotePlans);
+      }
+    });
+
+    const unsubSettings = firestoreGym.subscribeToSettings(remoteSettings => {
+      if (remoteSettings) {
+        setSettings(remoteSettings);
+      }
+    });
+
+    // 2. Protected listeners: Only attach onSnapshot listeners if auth is ready and user is authenticated
+    let unsubMembers = () => {};
+    let unsubMemberships = () => {};
+    let unsubPayments = () => {};
+    let unsubAttendance = () => {};
+    let unsubRenewals = () => {};
+
+    if (!authLoading && isAuthenticated && currentUser) {
+      if (role === 'OWNER' || role === 'STAFF') {
+        void firestoreGym.initializeFirestoreSeed();
+
+        unsubMembers = firestoreGym.subscribeToMembers(remoteMembers => {
+          if (remoteMembers && remoteMembers.length > 0) {
+            setMembers(remoteMembers);
+          }
+        });
+
+        unsubMemberships = firestoreGym.subscribeToMemberships(remoteMships => {
+          if (remoteMships && remoteMships.length > 0) {
+            setMemberships(remoteMships);
+          }
+        });
+
+        unsubPayments = firestoreGym.subscribeToPayments(remotePayments => {
+          if (remotePayments && remotePayments.length > 0) {
+            setPayments(remotePayments);
+          }
+        });
+
+        unsubAttendance = firestoreGym.subscribeToAttendance(remoteAttendance => {
+          if (remoteAttendance && remoteAttendance.length > 0) {
+            setAttendance(remoteAttendance);
+          }
+        });
+
+        unsubRenewals = firestoreGym.subscribeToRenewals(remoteRenewals => {
+          if (remoteRenewals && remoteRenewals.length > 0) {
+            setRenewalRequests(remoteRenewals);
+          }
+        });
+      }
+    }
+
+    return () => {
+      unsubPlans();
+      unsubSettings();
+      unsubMembers();
+      unsubMemberships();
+      unsubPayments();
+      unsubAttendance();
+      unsubRenewals();
+    };
+  }, [authLoading, isAuthenticated, currentUser, role]);
 
   // Compute live stats from data
   const todayStr = getTodayDateString();
@@ -264,61 +233,49 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     staffOnDuty,
   };
 
-  // Core business actions use Supabase as the single source of truth.
-  const addMember = async (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
-    return createSupabaseMember({
-      name: data.name,
-      phone: data.phone,
-      email: data.email,
-      dateOfBirth: data.dateOfBirth,
-      gender: data.gender,
-      address: data.address,
-      emergencyContact: data.emergencyContact,
-      emergencyRelation: data.emergencyRelation,
-      joinDate: data.joinDate,
-    });
+  // Actions with synchronous local state and asynchronous Cloud Firestore sync
+  const addMember = (data: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const created = gymStorage.createMember(data);
+    void firestoreGym.saveMember(created);
+    refreshAll();
+    return created;
   };
 
-  const updateMember = async (id: string, updates: Partial<Member>) => {
-    const updated = await updateSupabaseMember(id, {
-      name: updates.name,
-      phone: updates.phone,
-      email: updates.email,
-      dateOfBirth: updates.dateOfBirth,
-      gender: updates.gender,
-      address: updates.address,
-      emergencyContact: updates.emergencyContact,
-      emergencyRelation: updates.emergencyRelation,
-      joinDate: updates.joinDate,
-    });
-    await refreshAll();
+  const updateMember = (id: string, updates: Partial<Member>) => {
+    const updated = gymStorage.updateMember(id, updates);
+    void firestoreGym.saveMember(updated);
+    refreshAll();
     return updated;
   };
 
-  const toggleMemberStatus = async (id: string) => {
-    const updated = await toggleSupabaseMemberStatus(id);
-    await refreshAll();
+  const toggleMemberStatus = (id: string) => {
+    const updated = gymStorage.toggleMemberStatus(id);
+    void firestoreGym.saveMember(updated);
+    refreshAll();
     return updated;
   };
 
-  const deleteMember = async (id: string) => {
-    await deleteSupabaseMember(id);
-    await refreshAll();
+  const deleteMember = (id: string) => {
+    gymStorage.deleteMember(id);
+    void firestoreGym.deleteMember(id);
+    refreshAll();
   };
 
-  const addPlan = async (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const plan = await createSupabaseMembershipPlan(data);
-    await refreshAll();
+  const addPlan = (data: Omit<MembershipPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const plan = gymStorage.createPlan(data);
+    void firestoreGym.savePlan(plan);
+    refreshAll();
     return plan;
   };
 
-  const updatePlan = async (id: string, updates: Partial<MembershipPlan>) => {
-    const plan = await updateSupabaseMembershipPlan(id, updates);
-    await refreshAll();
+  const updatePlan = (id: string, updates: Partial<MembershipPlan>) => {
+    const plan = gymStorage.updatePlan(id, updates);
+    void firestoreGym.savePlan(plan);
+    refreshAll();
     return plan;
   };
 
-  const assignMembership = async (params: {
+  const assignMembership = (params: {
     memberId: string;
     planId: string;
     startDate: string;
@@ -326,186 +283,134 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
   }) => {
-    const membership = await createSupabaseMembership({
-      memberId: params.memberId,
-      planId: params.planId,
-      startDate: params.startDate,
-    });
-
-    let payment: Payment | undefined;
-    if (params.recordPaymentNow) {
-      payment = await createSupabasePayment({
-        memberId: params.memberId,
-        memberName: membership.memberName,
-        memberCode: membership.memberCode,
-        membershipId: membership.id,
-        amount: membership.price,
-        paymentDate: params.startDate,
-        paymentMethod: params.paymentMethod || 'UPI',
-        transactionReference: `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`,
-        status: 'PAID',
-        recordedBy: params.performedBy || 'Staff',
-        notes: `Full payment for ${membership.planName}`,
-      });
+    const res = gymStorage.assignMembership(params);
+    void firestoreGym.saveMembership(res.membership);
+    if (res.payment) {
+      void firestoreGym.savePayment(res.payment);
     }
-
-    await refreshAll();
-    return { membership, payment };
+    refreshAll();
+    return res;
   };
 
-  const renewMembership = async (params: {
+  const renewMembership = (params: {
     memberId: string;
     planId?: string;
     recordPaymentNow?: boolean;
     paymentMethod?: 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER';
     performedBy?: string;
   }) => {
-    const membership = await renewSupabaseMembership(params);
-
-    let payment: Payment | undefined;
-    if (params.recordPaymentNow) {
-      payment = await createSupabasePayment({
-        memberId: membership.memberId,
-        memberName: membership.memberName,
-        memberCode: membership.memberCode,
-        membershipId: membership.id,
-        amount: membership.price,
-        paymentDate: new Date().toISOString().slice(0, 10),
-        paymentMethod: params.paymentMethod || 'UPI',
-        transactionReference: `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`,
-        status: 'PAID',
-        recordedBy: params.performedBy || 'Staff',
-        notes: `Renewal payment for ${membership.planName}`,
-      });
+    const res = gymStorage.renewMembership(params);
+    void firestoreGym.saveMembership(res.membership);
+    if (res.payment) {
+      void firestoreGym.savePayment(res.payment);
     }
-
-    await refreshAll();
-    return { membership, payment };
+    refreshAll();
+    return res;
   };
 
-  const recordPayment = async (data: Omit<Payment, 'id' | 'createdAt'>) => {
-    const payment = await createSupabasePayment(data);
-    await refreshAll();
-    return payment;
+  const recordPayment = (data: Omit<Payment, 'id' | 'createdAt'>) => {
+    const p = gymStorage.recordPayment(data);
+    void firestoreGym.savePayment(p);
+    refreshAll();
+    return p;
   };
 
-  const undoPayment = async (paymentIdOrTxn: string) => {
-    await refundSupabasePayment(paymentIdOrTxn);
-    await refreshAll();
-    return { success: true, message: 'Payment refunded successfully.' };
+  const undoPayment = (paymentIdOrTxn: string, performedBy?: string) => {
+    const res = gymStorage.undoPayment(paymentIdOrTxn, performedBy);
+    const payments = gymStorage.getPayments();
+    const payment = payments.find(p => p.id === paymentIdOrTxn || p.transactionReference === paymentIdOrTxn);
+    if (payment) {
+      void firestoreGym.savePayment(payment);
+      if (payment.membershipId) {
+        const m = gymStorage.getMemberships().find(x => x.id === payment.membershipId);
+        if (m) {
+          void firestoreGym.saveMembership(m);
+        }
+      }
+    }
+    refreshAll();
+    return res;
   };
 
-  const cancelMembership = async (membershipId: string) => {
-    await cancelSupabaseMembership(membershipId);
-    await refreshAll();
+  const cancelMembership = (membershipId: string, performedBy?: string) => {
+    gymStorage.cancelMembership(membershipId, performedBy);
+    const m = gymStorage.getMemberships().find(x => x.id === membershipId);
+    if (m) {
+      void firestoreGym.saveMembership(m);
+    }
+    refreshAll();
   };
 
-  const checkInMember = async (memberId: string, gate?: string, _authMethod?: string) => {
-    const created = await checkInMemberSupabase({ memberId });
-    await refreshAll();
-
-    const member = members.find(m => m.id === created.member_id);
-
-    return {
-      id: created.id,
-      memberId: created.member_id,
-      memberName: member?.name ?? 'Unknown member',
-      memberCode: member?.memberCode ?? `#${created.member_id.slice(0, 8)}`,
-      checkIn: created.checked_in_at,
-      ...(created.checked_out_at ? { checkOut: created.checked_out_at } : {}),
-      markedBy: created.recorded_by ?? 'Staff',
-      gate: gate ?? 'Manual Desk Override',
-      status: created.checked_out_at ? 'CHECKED_OUT' : 'CHECKED_IN',
-      createdAt: created.created_at,
-    };
+  const checkInMember = (memberId: string, gate?: string, authMethod?: string) => {
+    const att = gymStorage.checkInMember(memberId, gate, authMethod);
+    void firestoreGym.saveAttendance(att);
+    refreshAll();
+    return att;
   };
 
-  const checkOutMember = async (attendanceId: string) => {
-    const updated = await checkOutMemberSupabase(attendanceId);
-    await refreshAll();
-
-    const member = members.find(m => m.id === updated.member_id);
-
-    return {
-      id: updated.id,
-      memberId: updated.member_id,
-      memberName: member?.name ?? 'Unknown member',
-      memberCode: member?.memberCode ?? `#${updated.member_id.slice(0, 8)}`,
-      checkIn: updated.checked_in_at,
-      ...(updated.checked_out_at ? { checkOut: updated.checked_out_at } : {}),
-      markedBy: updated.recorded_by ?? 'Staff',
-      gate: 'Supabase attendance',
-      status: updated.checked_out_at ? 'CHECKED_OUT' : 'CHECKED_IN',
-      createdAt: updated.created_at,
-    };
+  const checkOutMember = (attendanceId: string) => {
+    const att = gymStorage.checkOutMember(attendanceId);
+    void firestoreGym.saveAttendance(att);
+    refreshAll();
+    return att;
   };
 
-  const updateStaffPermissions = async (staffId: string, updates: Partial<StaffPermissions>) => {
-    const updated = await updateSupabaseStaffPermissions(staffId, updates);
-    await refreshAll();
-    return updated;
+  const updateStaffPermissions = (staffId: string, updates: Partial<StaffPermissions>) => {
+    const s = gymStorage.updateStaffPermissions(staffId, updates);
+    refreshAll();
+    return s;
   };
 
-  const addStaff = async (data: Omit<StaffPermissions, 'updatedAt'>) => {
-    const credentials = await provisionSupabaseStaffAccount({
-      name: data.staffName,
-      email: data.staffEmail,
-      assignedBranch: data.assignedBranch,
-    });
-    await refreshAll();
-    const created = staffList.find(staff => staff.staffId === credentials.staff_id);
-    const staff = created ?? {
-      staffId: credentials.staff_id,
-      staffName: data.staffName,
-      staffEmail: credentials.email,
-      role: 'STAFF' as const,
-      canManageMembers: data.canManageMembers,
-      canManageMemberships: data.canManageMemberships,
-      canRecordPayments: data.canRecordPayments,
-      canManageAttendance: data.canManageAttendance,
-      canViewReports: data.canViewReports,
-      isActive: true,
-      assignedBranch: data.assignedBranch,
-      updatedAt: new Date().toISOString(),
-    };
-    return { staff, credentials: { email: credentials.email, password: credentials.password } };
+  const addStaff = (data: Omit<StaffPermissions, 'updatedAt'>) => {
+    const s = gymStorage.createStaff(data);
+    refreshAll();
+    return s;
   };
 
-  const createRenewalRequest = (params: {
-    memberId: string;
-    requestedPlanId: string;
-    notes?: string;
-  }) => {
-    const req = gymStorage.createRenewalRequest(params);
-    void refreshAll();
-    return req;
+  const createRenewalRequest = (params: { memberId: string; requestedPlanId: string; notes?: string }) => {
+    const r = gymStorage.createRenewalRequest(params);
+    void firestoreGym.saveRenewalRequest(r);
+    refreshAll();
+    return r;
   };
 
   const processRenewalRequest = (requestId: string, approved: boolean) => {
-    const req = gymStorage.processRenewalRequest(requestId, approved);
-    void refreshAll();
-    return req;
+    const r = gymStorage.processRenewalRequest(requestId, approved);
+    void firestoreGym.saveRenewalRequest(r);
+    if (approved) {
+      const m = gymStorage.getMembershipByMemberId(r.memberId);
+      if (m) {
+        void firestoreGym.saveMembership(m);
+      }
+      const p = gymStorage.getPayments().find(pay => pay.memberId === r.memberId);
+      if (p) {
+        void firestoreGym.savePayment(p);
+      }
+    }
+    refreshAll();
+    return r;
   };
 
   const markNotificationAsRead = (id: string) => {
     gymStorage.markNotificationAsRead(id);
-    void refreshAll();
+    refreshAll();
   };
 
   const markAllNotificationsAsRead = () => {
     gymStorage.markAllNotificationsAsRead();
-    void refreshAll();
+    refreshAll();
   };
 
   const updateSettings = (updates: Partial<GymSettings>) => {
     const s = gymStorage.updateSettings(updates);
-    void refreshAll();
+    void firestoreGym.saveSettings(s);
+    refreshAll();
     return s;
   };
 
   const resetSeedData = () => {
-    gymStorage.resetToSeed();
-    void refreshAll();
+    gymStorage.resetSeedData();
+    refreshAll();
   };
 
   return (

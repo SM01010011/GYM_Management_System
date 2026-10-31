@@ -13,7 +13,6 @@ import {
   getTodayDateString,
 } from '../../utils/dateUtils';
 import { useToast } from '../../components/common/Toast';
-import { createSupabaseMembership } from '../../services/supabaseMemberships';
 
 interface AssignMembershipModalProps {
   isOpen: boolean;
@@ -26,7 +25,7 @@ export const AssignMembershipModal: React.FC<AssignMembershipModalProps> = ({
   onClose,
   initialMember,
 }) => {
-  const { members, plans, refreshAll } = useGym();
+  const { members, plans, assignMembership, refreshAll } = useGym();
   const { showToast } = useToast();
 
   const activePlans = plans.filter((plan) => plan.isActive);
@@ -78,19 +77,20 @@ export const AssignMembershipModal: React.FC<AssignMembershipModalProps> = ({
     setSaving(true);
 
     try {
-      const membership = await createSupabaseMembership({
+      const result = assignMembership({
         memberId: selectedMember.id,
         planId: selectedPlan.id,
         startDate,
-        notes,
+        recordPaymentNow: false,
+        performedBy: 'Owner / Staff',
       });
 
-      await refreshAll();
+      refreshAll();
 
       showToast(
         'Membership Assigned! 🎉',
         `${selectedPlan.name} assigned to ${selectedMember.name}. Valid until ${formatDisplayDate(
-          membership.expiryDate
+          result.membership.expiryDate
         )}.`,
         'success'
       );

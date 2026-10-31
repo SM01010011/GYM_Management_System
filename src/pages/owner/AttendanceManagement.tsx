@@ -29,28 +29,12 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
   const [selectedGate, setSelectedGate] = useState('Gate 01 - Main Turnstile');
   const [filterMode, setFilterMode] = useState<'all' | 'inside' | 'checked_out'>('all');
 
-  // Search is deliberately normalized so all of these work:
-  // M-57D3B46B, #M-57D3B46B, m57d3b46b, phone with/without spaces, name, email, or UUID.
-  const normalizeSearch = (value: string) =>
-    value.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-  const normalizedQuery = normalizeSearch(searchQuery.trim());
-
-  const matchedMembers = normalizedQuery === ''
-    ? []
-    : members.filter(m => {
-        const searchable = [
-          m.name,
-          m.memberCode,
-          m.phone,
-          m.email,
-          m.id,
-        ]
-          .filter(Boolean)
-          .map(normalizeSearch);
-
-        return searchable.some(value => value.includes(normalizedQuery));
-      }).slice(0, 5);
+  // Filter members for quick check-in search
+  const matchedMembers = searchQuery.trim() === '' ? [] : members.filter(m => 
+    m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.memberCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.phone.includes(searchQuery)
+  ).slice(0, 5);
 
   const handleQuickCheckIn = async (memberId: string, memberName: string) => {
     const membership = getMemberActiveMembership(memberId);
@@ -156,19 +140,10 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({ onAs
                 />
               </div>
 
-              {/* Member results are rendered in normal document flow.
-                  This intentionally avoids absolute positioning so the result/action
-                  can never be hidden behind the terminal card or attendance table. */}
-              {searchQuery.trim() !== '' && (
-                <div className="mt-2 bg-white dark:bg-slate-950 border border-[#ebbbb4] dark:border-slate-700 rounded-xl shadow-xl p-2 space-y-1 max-h-80 overflow-y-auto">
-                  {matchedMembers.length === 0 ? (
-                    <div className="px-3 py-4 text-sm text-gray-500 dark:text-slate-400">
-                      <div className="font-semibold text-[#2b1613] dark:text-white">No matching member found</div>
-                      <div className="mt-1 text-xs">
-                        Search by member name, phone, email, or member code such as <span className="font-mono">#M-57D3B46B</span>.
-                      </div>
-                    </div>
-                  ) : matchedMembers.map(m => {
+              {/* Instant Search Results Dropdown */}
+              {matchedMembers.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-950 border border-[#ebbbb4] dark:border-slate-700 rounded-xl shadow-2xl p-2 z-[100] space-y-1 max-h-72 overflow-y-auto">
+                  {matchedMembers.map(m => {
                     const activeMem = getMemberActiveMembership(m.id);
                     const isCheckedIn = attendance.some(a => a.memberId === m.id && !a.checkOut);
                     const isExpired = !activeMem || activeMem.status === 'EXPIRED';

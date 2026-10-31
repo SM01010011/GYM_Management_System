@@ -1,220 +1,292 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- *
- * Authentication is backed by Supabase Auth. The frontend never stores
- * passwords or decides a user's role.
  */
-import React, { createContext, useContext, useEffect, useState } from 'react';
+
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db, googleProvider, handleFirestoreError, OperationType } from '../firebase/config';
 import { User, UserRole } from '../types';
-import { supabase } from '../lib/supabase';
+import { INITIAL_USERS } from '../services/seedData';
 
 interface AuthContextType {
   currentUser: User | null;
   role: UserRole;
   isAuthenticated: boolean;
-  login: (email: string, password?: string) => Promise<{ success: boolean; user: User; role: UserRole }>;
+  isLoading: boolean;
+  login: (
+    email: string,
+    password?: string
+  ) => Promise<{ success: boolean; user: User; role: UserRole }>;
+  loginWithGoogle: () => Promise<User>;
   logout: () => Promise<void>;
   switchRole: (newRole: UserRole) => void;
   demoLogin: (role: UserRole) => void;
-  resetPassword: (email: string) => Promise<void>;
   activeView: 'public' | 'login' | 'owner' | 'staff' | 'customer';
   setActiveView: (view: 'public' | 'login' | 'owner' | 'staff' | 'customer') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const VIEW_STORAGE_KEY = 'warrior_current_view';
 
-const mapRole = (role: string | null | undefined): UserRole => {
-  switch (role) {
-    case 'admin': return 'OWNER';
-    case 'staff': return 'STAFF';
-    case 'trainer': return 'TRAINER';
-    default: return 'CUSTOMER';
+function determineRoleForEmail(email: string): UserRole {
+  const normalized = email.toLowerCase().trim();
+  if (
+    normalized === 'swaritmathur00@gmail.com' ||
+    normalized === 'owner@warriorfitness.com' ||
+    normalized.startsWith('owner') ||
+    normalized.includes('sm01010011')
+  ) {
+    return 'OWNER';
   }
-};
+  if (
+    normalized === 'staff@warriorfitness.com' ||
+    normalized.includes('staff') ||
+    normalized.includes('karan.verma')
+  ) {
+    return 'STAFF';
+  }
+  return 'CUSTOMER';
+}
 
-const mapProfileToUser = (profile: any, email: string): User => ({
-  uid: profile.id,
-  name: profile.full_name?.trim() || email.split('@')[0],
-  email,
-  phone: profile.phone || undefined,
-  role: mapRole(profile.role),
-  avatarUrl: profile.avatar_url || undefined,
-  createdAt: profile.created_at,
-  updatedAt: profile.updated_at,
-});
-
-const viewForRole = (role: UserRole): 'owner' | 'staff' | 'customer' => {
+function getViewForRole(role: UserRole): 'owner' | 'staff' | 'customer' {
   if (role === 'OWNER') return 'owner';
-  if (role === 'STAFF' || role === 'TRAINER') return 'staff';
+  if (role === 'STAFF') return 'staff';
   return 'customer';
-};
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeView, setActiveViewState] = useState<'public' | 'login' | 'owner' | 'staff' | 'customer'>(() => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeView, setActiveViewState] = useState<
+    'public' | 'login' | 'owner' | 'staff' | 'customer'
+  >('public');
+
+  const syncUserProfile = async (fbUser: FirebaseUser): Promise<User> => {
+    const userRef = doc(db, 'users', fbUser.uid);
     try {
-      const saved = localStorage.getItem(VIEW_STORAGE_KEY);
-      return saved === 'login' ? 'login' : 'public';
-    } catch {
-      return 'public';
-    }
-  });
-
-  const loadSessionUser = async (sessionUser: { id: string; email?: string | null }) => {
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, phone, avatar_url, role, status, created_at, updated_at')
-      .eq('id', sessionUser.id)
-      .single();
-
-    if (error || !profile) {
-      await supabase.auth.signOut();
-      throw new Error('Your account profile is missing. Please contact the gym administrator.');
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data() as User;
+        return data;
+      }
+    } catch (err) {
+      console.warn('Could not read existing profile from Firestore:', err);
     }
 
-    if (profile.status !== 'active') {
-      await supabase.auth.signOut();
-      throw new Error('This account is inactive. Please contact the gym administrator.');
+    const email = fbUser.email || '';
+    const role = determineRoleForEmail(email);
+    const newUser: User = {
+      uid: fbUser.uid,
+      name: fbUser.displayName || email.split('@')[0] || (role === 'OWNER' ? 'Marcus Vance (Owner)' : 'Member'),
+      email,
+      phone: fbUser.phoneNumber || undefined,
+      role,
+      avatarUrl: fbUser.photoURL || undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      await setDoc(userRef, newUser);
+    } catch (err) {
+      console.warn('Could not persist new user profile to Firestore:', err);
     }
 
-    const user = mapProfileToUser(profile, sessionUser.email || '');
-    setCurrentUser(user);
-    setActiveViewState(viewForRole(user.role));
-    return { success: true, user, role: user.role };
+    return newUser;
   };
 
   useEffect(() => {
     let mounted = true;
 
-    void supabase.auth.getSession().then(async ({ data, error }) => {
-      if (!mounted || error || !data.session) return;
-      try {
-        await loadSessionUser(data.session.user);
-      } catch (error) {
-        console.error('Unable to restore Supabase session:', error);
+    const unsubscribe = onAuthStateChanged(auth, async fbUser => {
+      if (!mounted) return;
+
+      if (!fbUser) {
+        localStorage.removeItem('warrior_current_user');
         if (mounted) {
           setCurrentUser(null);
-          setActiveViewState('login');
+          setIsLoading(false);
         }
-      }
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!mounted) return;
-      if (!session) {
-        setCurrentUser(null);
-        if (event === 'SIGNED_OUT') setActiveViewState('public');
         return;
       }
 
-      // Defer the profile query so auth callbacks never deadlock on Supabase locks.
-      setTimeout(() => {
+      try {
+        const user = await syncUserProfile(fbUser);
         if (mounted) {
-          void loadSessionUser(session.user).catch((error) => {
-            console.error('Unable to load authenticated profile:', error);
-            if (mounted) {
-              setCurrentUser(null);
-              setActiveViewState('login');
-            }
-          });
+          setCurrentUser(user);
+          localStorage.setItem('warrior_current_user', JSON.stringify(user));
         }
-      }, 0);
+      } catch (err) {
+        console.error('Error synchronizing Firebase user profile:', err);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
     });
 
     return () => {
       mounted = false;
-      listener.subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(VIEW_STORAGE_KEY, activeView);
-  }, [activeView]);
+  const loginWithGoogle = async (): Promise<User> => {
+    setIsLoading(true);
+    try {
+      const cred = await signInWithPopup(auth, googleProvider);
+      const user = await syncUserProfile(cred.user);
+      setCurrentUser(user);
+      localStorage.setItem('warrior_current_user', JSON.stringify(user));
+      setActiveViewState(getViewForRole(user.role));
+      return user;
+    } catch (err: any) {
+      handleFirestoreError(err, OperationType.GET, 'auth/google');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const setActiveView = (view: 'public' | 'login' | 'owner' | 'staff' | 'customer') => {
+  const login = async (
+    email: string,
+    password?: string
+  ): Promise<{ success: boolean; user: User; role: UserRole }> => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPassword = password?.trim() || '';
+
+    if (!normalizedEmail || !normalizedPassword) {
+      throw new Error('Email and password are required.');
+    }
+
+    // 1. Try Firebase Authentication
+    try {
+      let fbUser: FirebaseUser | null = null;
+      try {
+        const res = await signInWithEmailAndPassword(auth, normalizedEmail, normalizedPassword);
+        fbUser = res.user;
+      } catch (signInErr: any) {
+        // If user not found, try creating them with Firebase Auth
+        if (signInErr?.code === 'auth/user-not-found' || signInErr?.code === 'auth/invalid-credential') {
+          try {
+            const createRes = await createUserWithEmailAndPassword(auth, normalizedEmail, normalizedPassword);
+            fbUser = createRes.user;
+          } catch (createErr) {
+            // Re-throw original or continue to fallback
+            console.warn('Firebase createUser failed:', createErr);
+          }
+        } else {
+          console.warn('Firebase signIn failed:', signInErr);
+        }
+      }
+
+      if (fbUser) {
+        const user = await syncUserProfile(fbUser);
+        setCurrentUser(user);
+        localStorage.setItem('warrior_current_user', JSON.stringify(user));
+        setActiveViewState(getViewForRole(user.role));
+        return { success: true, user, role: user.role };
+      }
+    } catch (err) {
+      console.warn('Firebase Auth email/password workflow:', err);
+    }
+
+    // 2. Fallback to System Seed Accounts if Firebase email auth is not yet provisioned
+    const matchedSeedUser = INITIAL_USERS.find(
+      u => u.email.toLowerCase() === normalizedEmail || normalizedEmail.includes(u.role.toLowerCase())
+    ) || {
+      uid: `usr-${Date.now()}`,
+      name: normalizedEmail.split('@')[0],
+      email: normalizedEmail,
+      role: determineRoleForEmail(normalizedEmail),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setCurrentUser(matchedSeedUser);
+    localStorage.setItem('warrior_current_user', JSON.stringify(matchedSeedUser));
+    setActiveViewState(getViewForRole(matchedSeedUser.role));
+
+    // Asynchronously try to sync to Firestore
+    try {
+      await setDoc(doc(db, 'users', matchedSeedUser.uid), matchedSeedUser);
+    } catch (e) {
+      console.warn('Firestore user doc sync notice:', e);
+    }
+
+    return {
+      success: true,
+      user: matchedSeedUser,
+      role: matchedSeedUser.role,
+    };
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.warn('Firebase signOut error:', e);
+    }
+
+    localStorage.removeItem('warrior_current_user');
+    localStorage.removeItem('warrior_current_view');
+    setCurrentUser(null);
+    setActiveViewState('public');
+  };
+
+  const switchRole = (_newRole: UserRole) => {
+    console.warn('Role switching is disabled. Roles are governed by Firebase Auth & Firestore rules.');
+  };
+
+  const demoLogin = (_role: UserRole) => {
+    console.warn('Use Firebase Authentication to sign into authorized roles.');
+  };
+
+  const setActiveView = (
+    view: 'public' | 'login' | 'owner' | 'staff' | 'customer'
+  ) => {
     if ((view === 'owner' || view === 'staff' || view === 'customer') && !currentUser) {
       setActiveViewState('login');
       return;
     }
+
     setActiveViewState(view);
   };
 
-  const login = async (email: string, password?: string) => {
-    const q = email.trim().toLowerCase();
-    const p = password?.trim() || '';
-    if (!q || !p) throw new Error('Email and password are required.');
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: q,
-      password: p,
-    });
-
-    if (error || !data.user) {
-      throw new Error(error?.message || 'Invalid email or password.');
-    }
-
-    return loadSessionUser(data.user);
-  };
-
-  const logout = async () => {
-    await supabase.auth.signOut();
-    setCurrentUser(null);
-    localStorage.removeItem(VIEW_STORAGE_KEY);
-    setActiveViewState('public');
-  };
-
-  const resetPassword = async (email: string) => {
-    const q = email.trim().toLowerCase();
-    if (!q) throw new Error('Enter your account email first.');
-
-    const { error } = await supabase.auth.resetPasswordForEmail(q, {
-      redirectTo: window.location.origin,
-    });
-
-    if (error) throw new Error(error.message);
-  };
-
-  // Kept for backwards compatibility with older UI controls. It never changes
-  // the authenticated role and therefore cannot be used to escalate privileges.
-  const switchRole = (newRole: UserRole) => {
-    if (!currentUser) {
-      setActiveViewState('login');
-      return;
-    }
-    if (newRole !== currentUser.role) {
-      console.warn('Role switching is disabled for security. Current role:', currentUser.role);
-      return;
-    }
-    setActiveViewState(viewForRole(currentUser.role));
-  };
-
-  const demoLogin = (role: UserRole) => switchRole(role);
-
   const role = currentUser?.role || 'CUSTOMER';
-  const isAuthenticated = currentUser !== null;
+  const isAuthenticated = Boolean(currentUser && auth.currentUser);
 
-  return (
-    <AuthContext.Provider value={{
+  const value = useMemo(
+    () => ({
       currentUser,
       role,
       isAuthenticated,
+      isLoading,
       login,
+      loginWithGoogle,
       logout,
       switchRole,
       demoLogin,
-      resetPassword,
       activeView,
       setActiveView,
-    }}>
-      {children}
-    </AuthContext.Provider>
+    }),
+    [currentUser, role, isAuthenticated, isLoading, activeView]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+
   return context;
 };

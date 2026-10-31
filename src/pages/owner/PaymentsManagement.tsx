@@ -55,7 +55,7 @@ export const PaymentsManagement: React.FC = () => {
     return payments.filter(p => p.status === 'PENDING').length;
   }, [payments]);
 
-  const handleRecordSubmit = async (e: React.FormEvent) => {
+  const handleRecordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const mem = members.find(m => m.id === formMemberId);
     if (!mem) {
@@ -64,7 +64,7 @@ export const PaymentsManagement: React.FC = () => {
     }
 
     const txnRef = `TXN-WRR-${Math.floor(100000 + Math.random() * 900000)}`;
-    const created = await recordPayment({
+    const created = recordPayment({
       memberId: mem.id,
       memberName: mem.name,
       memberCode: mem.memberCode,
@@ -276,7 +276,7 @@ export const PaymentsManagement: React.FC = () => {
               value={formMemberId}
               onChange={e => setFormMemberId(e.target.value)}
               required
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
             >
               {members.map(m => (
                 <option key={m.id} value={m.id}>
@@ -297,7 +297,7 @@ export const PaymentsManagement: React.FC = () => {
                 required
                 value={formAmount}
                 onChange={e => setFormAmount(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-bold text-[#bc0100] font-headline outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-xs font-bold text-[#bc0100] font-headline outline-none"
               />
             </div>
             <div>
@@ -309,7 +309,7 @@ export const PaymentsManagement: React.FC = () => {
                 value={formDate}
                 onChange={e => setFormDate(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium outline-none"
               />
             </div>
           </div>
@@ -327,7 +327,7 @@ export const PaymentsManagement: React.FC = () => {
                   className={`py-2 px-1 rounded-lg border font-semibold text-center transition-all ${
                     formMethod === m
                       ? 'border-[#bc0100] bg-[#bc0100] text-white shadow-sm'
-                      : 'border-gray-200 dark:border-gray-800 hover:border-black'
+                      : 'border-gray-200 dark:border-gray-800 text-[#2b1613] dark:text-white hover:border-[#bc0100]'
                   }`}
                 >
                   {m === 'UPI' ? 'UPI' : m === 'CASH' ? 'Cash' : m === 'CARD' ? 'Card' : 'NEFT'}
@@ -343,7 +343,7 @@ export const PaymentsManagement: React.FC = () => {
               value={formNotes}
               onChange={e => setFormNotes(e.target.value)}
               placeholder="e.g. Counter fee or renewal"
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium outline-none"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium outline-none"
             />
           </div>
 

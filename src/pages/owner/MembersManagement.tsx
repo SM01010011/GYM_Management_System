@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Member, MemberStatus, MembershipStatus } from '../../types';
 import { useGym } from '../../context/GymContext';
 import { formatDisplayDate, getDaysRemaining } from '../../utils/dateUtils';
@@ -12,15 +12,13 @@ import { AssignMembershipModal } from './AssignMembershipModal';
 import { ConfirmationModal } from '../../components/common/ConfirmationModal';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../components/common/Toast';
-import { createSupabaseMember } from '../../services/supabaseMemberMutations';
-import { provisionMemberAccount } from '../../services/supabaseMemberAccounts';
 
 export const MembersManagement: React.FC = () => {
   const {
     members,
     memberships,
+    addMember,
     updateMember,
-    refreshAll,
     toggleMemberStatus,
     deleteMember,
     renewMembership,
@@ -44,8 +42,6 @@ export const MembersManagement: React.FC = () => {
   const [editMemberModalOpen, setEditMemberModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [addMemberModalOpen, setAddMemberModalOpen] = useState(false);
-  const [loginCredentials, setLoginCredentials] = useState<{ name: string; email: string; password: string } | null>(null);
-  const [provisioningMemberId, setProvisioningMemberId] = useState<string | null>(null);
 
   // Add/Edit Form State
   const [formName, setFormName] = useState('');
@@ -140,60 +136,30 @@ export const MembersManagement: React.FC = () => {
     setEditMemberModalOpen(true);
   };
 
-  const handleSaveAdd = async (e: React.FormEvent) => {
+  const handleSaveAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formPhone.trim()) {
       showToast('Validation Error', 'Name and phone are required.', 'error');
       return;
     }
-    if (!formEmail.trim()) {
-      showToast('Login Email Required', 'Enter the member email so the system can create their login account.', 'error');
-      return;
-    }
+    const memberCode = `#M-${Math.floor(1000 + Math.random() * 9000)}`;
+    const created = addMember({
+      memberCode,
+      name: formName,
+      phone: formPhone,
+      email: formEmail,
+      gender: formGender,
+      dateOfBirth: formDob,
+      emergencyContact: formEmergency,
+      address: formAddress,
+      joinDate: new Date().toISOString().slice(0, 10),
+      status: 'ACTIVE',
+      assignedCoach: 'Vikram Rajput',
+      lockerNumber: String(Math.floor(10 + Math.random() * 80)),
+    });
 
-    try {
-      const created = await createSupabaseMember({
-        name: formName,
-        phone: formPhone,
-        email: formEmail,
-        gender: formGender,
-        dateOfBirth: formDob,
-        emergencyContact: formEmergency,
-        address: formAddress,
-        joinDate: new Date().toISOString().slice(0, 10),
-      });
-
-      const credentials = await provisionMemberAccount(created.id);
-      void refreshAll();
-      setAddMemberModalOpen(false);
-      setLoginCredentials({ name: created.name, email: credentials.email, password: credentials.password });
-      showToast('Member + Login Created! 🎉', `${created.name} can now sign in.`, 'success');
-    } catch (err: any) {
-      showToast('Member Creation Failed', err?.message || 'Unable to create member.', 'error');
-    }
-  };
-
-  const handleProvisionLogin = async (member: Member) => {
-    if (member.userId) {
-      showToast('Login Already Exists', `${member.name} already has a linked login account.`, 'info');
-      return;
-    }
-    if (!member.email?.trim()) {
-      showToast('Email Required', 'Add the member email first, then create their login.', 'error');
-      return;
-    }
-
-    try {
-      setProvisioningMemberId(member.id);
-      const credentials = await provisionMemberAccount(member.id);
-      void refreshAll();
-      setLoginCredentials({ name: member.name, email: credentials.email, password: credentials.password });
-      showToast('Login Created', `${member.name} now has a customer login.`, 'success');
-    } catch (err: any) {
-      showToast('Login Creation Failed', err?.message || 'Unable to create login.', 'error');
-    } finally {
-      setProvisioningMemberId(null);
-    }
+    setAddMemberModalOpen(false);
+    showToast('Member Enrolled! 🎉', `${created.name} registered with ${memberCode}.`, 'success');
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -212,19 +178,11 @@ export const MembersManagement: React.FC = () => {
     showToast('Member Updated', `Saved profile details for ${formName}.`, 'success');
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     if (!deleteConfirmMember) return;
-
-    const member = deleteConfirmMember;
-    try {
-      showToast('Deleting Member', `Removing ${member.name} from the live database...`, 'warning');
-      await deleteMember(member.id);
-      setDeleteConfirmMember(null);
-      showToast('Member Deleted', `${member.name} was permanently removed from the live database.`, 'success');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to delete member.';
-      showToast('Delete Failed', message, 'error');
-    }
+    deleteMember(deleteConfirmMember.id);
+    showToast('Member Deleted', `Permanently removed ${deleteConfirmMember.name}.`, 'warning');
+    setDeleteConfirmMember(null);
   };
 
   return (
@@ -464,17 +422,6 @@ export const MembersManagement: React.FC = () => {
                             <span className="material-symbols-outlined text-lg">autorenew</span>
                           </button>
 
-                          {!member.userId && (
-                            <button
-                              onClick={() => void handleProvisionLogin(member)}
-                              disabled={provisioningMemberId === member.id}
-                              className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50"
-                              title="Create Member Login"
-                            >
-                              <span className="material-symbols-outlined text-lg">key</span>
-                            </button>
-                          )}
-
                           <button
                             onClick={() => handleOpenEdit(member)}
                             className="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-black/5 dark:hover:bg-white/10"
@@ -565,9 +512,9 @@ export const MembersManagement: React.FC = () => {
           });
           showToast('Payment Recorded', `₹3,500 recorded for ${m.name}.`, 'success');
         }}
-        onMarkAttendance={m => {
+        onMarkAttendance={async m => {
           try {
-            checkInMember(m.id);
+            await checkInMember(m.id);
             showToast('Check-In Successful', `${m.name} checked in at turnstile gate.`, 'success');
           } catch (err: any) {
             showToast('Attendance', err.message, 'info');
@@ -597,37 +544,6 @@ export const MembersManagement: React.FC = () => {
         isDestructive={true}
       />
 
-      {/* One-time member login credentials */}
-      <Modal
-        isOpen={loginCredentials !== null}
-        onClose={() => setLoginCredentials(null)}
-        title="Member Login Created"
-        subtitle="Save these credentials — the generated password is shown only once."
-        icon="key"
-        maxWidth="md"
-      >
-        {loginCredentials && (
-          <div className="space-y-4">
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-              <p className="text-sm font-bold text-gray-900 dark:text-white">{loginCredentials.name}</p>
-              <p className="text-xs text-gray-500 mt-1">Customer account is linked to the member record.</p>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Login Email</label>
-              <div className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 font-mono text-sm">{loginCredentials.email}</div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">System Generated Password</label>
-              <div className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 font-mono text-sm select-all">{loginCredentials.password}</div>
-            </div>
-            <p className="text-[11px] text-amber-600 dark:text-amber-400">Give these credentials to the member securely. The password is not stored in the member table.</p>
-            <div className="flex justify-end pt-2">
-              <button onClick={() => setLoginCredentials(null)} className="px-5 py-2.5 rounded-xl bg-[#bc0100] text-white text-xs font-bold">Done</button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
       {/* Add / Edit Member Modal */}
       <Modal
         isOpen={addMemberModalOpen || editMemberModalOpen}
@@ -652,7 +568,7 @@ export const MembersManagement: React.FC = () => {
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
                 placeholder="Ramesh Kumar"
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
               />
             </div>
             <div>
@@ -665,7 +581,7 @@ export const MembersManagement: React.FC = () => {
                 value={formPhone}
                 onChange={e => setFormPhone(e.target.value)}
                 placeholder="+91 98450 12345"
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
               />
             </div>
           </div>
@@ -673,15 +589,14 @@ export const MembersManagement: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-                Email Address {addMemberModalOpen && <span className="text-red-500">*</span>}
+                Email Address
               </label>
               <input
                 type="email"
-                required={addMemberModalOpen}
                 value={formEmail}
                 onChange={e => setFormEmail(e.target.value)}
                 placeholder="member@example.com"
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
               />
             </div>
             <div>
@@ -689,7 +604,7 @@ export const MembersManagement: React.FC = () => {
               <select
                 value={formGender}
                 onChange={e => setFormGender(e.target.value as any)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -705,7 +620,7 @@ export const MembersManagement: React.FC = () => {
                 type="date"
                 value={formDob}
                 onChange={e => setFormDob(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
               />
             </div>
             <div>
@@ -715,7 +630,7 @@ export const MembersManagement: React.FC = () => {
                 value={formEmergency}
                 onChange={e => setFormEmergency(e.target.value)}
                 placeholder="Name & Contact number"
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
               />
             </div>
           </div>
@@ -727,7 +642,7 @@ export const MembersManagement: React.FC = () => {
               value={formAddress}
               onChange={e => setFormAddress(e.target.value)}
               placeholder="Full street address..."
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
             />
           </div>
 

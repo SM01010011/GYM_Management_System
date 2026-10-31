@@ -11,6 +11,7 @@ import { ToastProvider } from './components/common/Toast';
 import { TopNavBar } from './components/layout/TopNavBar';
 import { Sidebar } from './components/layout/Sidebar';
 import { BottomNav } from './components/layout/BottomNav';
+import { AppFooter } from './components/layout/AppFooter';
 
 // Pages
 import { PublicLanding } from './pages/PublicLanding';
@@ -62,6 +63,7 @@ const AppContent: React.FC = () => {
         <main className="flex-1">
           <AuthLogin />
         </main>
+        <AppFooter />
       </div>
     );
   }
@@ -74,6 +76,7 @@ const AppContent: React.FC = () => {
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
           <CustomerPortal />
         </main>
+        <AppFooter isPortal />
         <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
       </div>
     );
@@ -86,21 +89,24 @@ const AppContent: React.FC = () => {
         <TopNavBar />
         <div className="flex-1 flex w-full">
           <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
-          <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full overflow-hidden">
-            {currentTab === 'overview' && <StaffDashboard />}
-            {currentTab === 'members' && <MembersManagement />}
-            {currentTab === 'attendance' && (
-              <AttendanceManagement onAssignMembership={() => setIsAssignModalOpen(true)} />
-            )}
-            {currentTab === 'expiring' && (
-              <ExpiringMemberships onRenewMembership={() => setIsAssignModalOpen(true)} />
-            )}
-            {currentTab === 'expired' && (
-              <ExpiredMemberships onRenewMembership={() => setIsAssignModalOpen(true)} />
-            )}
-            {currentTab === 'renewals' && <RenewalRequests />}
-            {currentTab === 'payments' && <PaymentsManagement />}
-          </main>
+          <div className="flex-1 flex flex-col min-w-0">
+            <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full overflow-hidden">
+              {currentTab === 'overview' && <StaffDashboard />}
+              {currentTab === 'members' && <MembersManagement />}
+              {currentTab === 'attendance' && (
+                <AttendanceManagement onAssignMembership={() => setIsAssignModalOpen(true)} />
+              )}
+              {currentTab === 'expiring' && (
+                <ExpiringMemberships onRenewMembership={() => setIsAssignModalOpen(true)} />
+              )}
+              {currentTab === 'expired' && (
+                <ExpiredMemberships onRenewMembership={() => setIsAssignModalOpen(true)} />
+              )}
+              {currentTab === 'renewals' && <RenewalRequests />}
+              {currentTab === 'payments' && <PaymentsManagement />}
+            </main>
+            <AppFooter isPortal />
+          </div>
         </div>
 
         <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
@@ -123,32 +129,35 @@ const AppContent: React.FC = () => {
         <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
 
         {/* Dynamic Tab Views */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full overflow-hidden">
-          {currentTab === 'overview' && (
-            <OwnerDashboard 
-              onNavigateTab={setCurrentTab}
-              onOpenAddMember={() => setCurrentTab('members')}
-              onOpenAssignPlan={() => setIsAssignModalOpen(true)}
-            />
-          )}
-          {currentTab === 'members' && <MembersManagement />}
-          {currentTab === 'plans' && <MembershipPlans />}
-          {currentTab === 'payments' && <PaymentsManagement />}
-          {currentTab === 'attendance' && (
-            <AttendanceManagement onAssignMembership={() => setIsAssignModalOpen(true)} />
-          )}
-          {currentTab === 'expiring' && (
-            <ExpiringMemberships onRenewMembership={() => setIsAssignModalOpen(true)} />
-          )}
-          {currentTab === 'expired' && (
-            <ExpiredMemberships onRenewMembership={() => setIsAssignModalOpen(true)} />
-          )}
-          {currentTab === 'renewals' && <RenewalRequests />}
-          {currentTab === 'reports' && <ReportsPage />}
-          {currentTab === 'staff' && <StaffManagement />}
-          {currentTab === 'audit' && <ActivityLogsPage />}
-          {currentTab === 'settings' && <SettingsPage />}
-        </main>
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full overflow-hidden">
+            {currentTab === 'overview' && (
+              <OwnerDashboard 
+                onNavigateTab={setCurrentTab}
+                onOpenAddMember={() => setCurrentTab('members')}
+                onOpenAssignPlan={() => setIsAssignModalOpen(true)}
+              />
+            )}
+            {currentTab === 'members' && <MembersManagement />}
+            {currentTab === 'plans' && <MembershipPlans />}
+            {currentTab === 'payments' && <PaymentsManagement />}
+            {currentTab === 'attendance' && (
+              <AttendanceManagement onAssignMembership={() => setIsAssignModalOpen(true)} />
+            )}
+            {currentTab === 'expiring' && (
+              <ExpiringMemberships onRenewMembership={() => setIsAssignModalOpen(true)} />
+            )}
+            {currentTab === 'expired' && (
+              <ExpiredMemberships onRenewMembership={() => setIsAssignModalOpen(true)} />
+            )}
+            {currentTab === 'renewals' && <RenewalRequests />}
+            {currentTab === 'reports' && <ReportsPage />}
+            {currentTab === 'staff' && <StaffManagement />}
+            {currentTab === 'audit' && <ActivityLogsPage />}
+            {currentTab === 'settings' && <SettingsPage />}
+          </main>
+          <AppFooter isPortal />
+        </div>
       </div>
 
       <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />

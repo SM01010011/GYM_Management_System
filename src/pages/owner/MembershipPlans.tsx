@@ -5,16 +5,12 @@
 
 import React, { useState } from 'react';
 import { MembershipPlan } from '../../types';
-import {
-  createSupabaseMembershipPlan,
-  updateSupabaseMembershipPlan,
-} from '../../services/supabaseMemberships';
 import { useGym } from '../../context/GymContext';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../components/common/Toast';
 
 export const MembershipPlans: React.FC = () => {
-  const { plans, refreshAll } = useGym();
+  const { plans, addPlan, updatePlan, refreshAll } = useGym();
   const { showToast } = useToast();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -75,7 +71,7 @@ export const MembershipPlans: React.FC = () => {
 
     try {
       if (editingPlan) {
-        await updateSupabaseMembershipPlan(editingPlan.id, {
+        updatePlan(editingPlan.id, {
           name: formName,
           description: formDesc,
           durationDays: Number(formDuration),
@@ -87,7 +83,7 @@ export const MembershipPlans: React.FC = () => {
 
         showToast('Plan Updated', `Saved "${formName}".`, 'success');
       } else {
-        await createSupabaseMembershipPlan({
+        addPlan({
           name: formName,
           description: formDesc,
           durationDays: Number(formDuration),
@@ -101,7 +97,7 @@ export const MembershipPlans: React.FC = () => {
         showToast('Plan Created', `"${formName}" was created.`, 'success');
       }
 
-      await refreshAll();
+      refreshAll();
       setModalOpen(false);
     } catch (error) {
       console.error(error);
@@ -117,10 +113,10 @@ export const MembershipPlans: React.FC = () => {
 
   const toggleActive = async (plan: MembershipPlan) => {
     try {
-      await updateSupabaseMembershipPlan(plan.id, {
+      updatePlan(plan.id, {
         isActive: !plan.isActive,
       });
-      await refreshAll();
+      refreshAll();
 
       showToast(
         plan.isActive ? 'Plan Deactivated' : 'Plan Activated',
@@ -254,7 +250,7 @@ export const MembershipPlans: React.FC = () => {
               required
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
             />
           </div>
 
@@ -266,7 +262,7 @@ export const MembershipPlans: React.FC = () => {
               type="text"
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
             />
           </div>
 
@@ -281,7 +277,7 @@ export const MembershipPlans: React.FC = () => {
                 required
                 value={formDuration}
                 onChange={(e) => setFormDuration(Number(e.target.value) || 30)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
               />
             </div>
 
@@ -295,7 +291,7 @@ export const MembershipPlans: React.FC = () => {
                 required
                 value={formPrice}
                 onChange={(e) => setFormPrice(Number(e.target.value) || 0)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
               />
             </div>
           </div>
@@ -308,7 +304,7 @@ export const MembershipPlans: React.FC = () => {
               type="text"
               value={formBadge}
               onChange={(e) => setFormBadge(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
             />
           </div>
 
@@ -320,7 +316,7 @@ export const MembershipPlans: React.FC = () => {
               rows={4}
               value={formFeatures}
               onChange={(e) => setFormFeatures(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-medium focus:border-[#bc0100] outline-none"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#201211] text-[#2b1613] dark:text-white text-xs font-medium focus:border-[#bc0100] outline-none"
             />
           </div>
 

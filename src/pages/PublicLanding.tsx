@@ -10,7 +10,7 @@ import { useToast } from '../components/common/Toast';
 import confetti from 'canvas-confetti';
 
 export const PublicLanding: React.FC = () => {
-  const { setActiveView } = useAuth();
+  const { setActiveView, switchRole } = useAuth();
   const {
     plans,
     recordPayment,
@@ -95,7 +95,7 @@ export const PublicLanding: React.FC = () => {
       const totalAmount = selectedPlan.basePrice + gst;
       const txnRef = `TXN-WRR-${Math.floor(1000000 + Math.random() * 9000000)}`;
 
-      const { membership } = await assignMembership({
+      const { membership } = assignMembership({
         memberId: member.id,
         planId: selectedPlan.planId,
         startDate: new Date().toISOString().slice(0, 10),
@@ -265,7 +265,7 @@ export const PublicLanding: React.FC = () => {
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-[11px] font-bold text-[#bc0100]">
-              <span>Coach SM01010011</span>
+              <span>Coach Marcus Vance</span>
               <span>Daily Slots</span>
             </div>
           </div>
@@ -485,17 +485,17 @@ export const PublicLanding: React.FC = () => {
 
           <div className="rounded-2xl border border-[#ebbbb4]/40 dark:border-white/10 bg-white dark:bg-[#1f1312] overflow-hidden shadow-sm">
             <img
-              src="https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&q=80&w=400"
-              alt="SM01010011"
-              className="w-full h-64 object-cover"
+              src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=600&v=male_coach_2"
+              alt="Coach Marcus - Head Combat Director"
+              className="w-full h-64 object-cover object-top"
             />
             <div className="p-5">
               <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-[10px] font-bold">
                 FOUNDER & COMBAT DIRECTOR
               </span>
-              <h3 className="font-headline font-bold text-base text-[#2b1613] dark:text-white mt-1">SM01010011</h3>
+              <h3 className="font-headline font-bold text-base text-[#2b1613] dark:text-white mt-1">Coach Marcus</h3>
               <p className="text-xs text-[#603e39] dark:text-gray-400 mt-1">
-                Former Golden Gloves • Tactical Striking & Anaerobic Capacity
+                Former Golden Gloves • Tactical Striking & Anaerobic Conditioning
               </p>
             </div>
           </div>
@@ -503,7 +503,7 @@ export const PublicLanding: React.FC = () => {
       </section>
 
       {/* AMENITIES & RECOVERY LAB */}
-      <section className="bg-slate-50 dark:bg-[#1a0f0e] border-y border-slate-200 dark:border-white/10 py-16 px-4 lg:px-8" id="telemetry">
+      <section className="bg-[#fff8f6] dark:bg-[#1a0f0e] border-y border-[#ebbbb4]/40 dark:border-white/10 py-16 px-4 lg:px-8" id="telemetry">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center max-w-2xl mx-auto">
             <span className="text-xs font-bold text-[#bc0100] tracking-widest uppercase font-label-caps">
@@ -518,7 +518,7 @@ export const PublicLanding: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-[#201211] p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between">
+            <div className="bg-white dark:bg-[#201211] p-6 rounded-2xl border border-[#ebbbb4]/40 dark:border-white/10 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-950/40 text-[#bc0100] flex items-center justify-center mb-4">
                   <span className="material-symbols-outlined text-2xl">sensors</span>
@@ -530,13 +530,13 @@ export const PublicLanding: React.FC = () => {
                   Sub-50ms solenoid release via encrypted dynamic RFID tokens and NFC smartphones. Instantaneous pass validation with zero waiting lines.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] font-bold text-emerald-600">
+              <div className="mt-4 pt-3 border-t border-[#ebbbb4]/20 dark:border-white/5 flex items-center justify-between text-[11px] font-bold text-emerald-600">
                 <span>99.98% System Uptime</span>
                 <span>24/7 Access</span>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-[#201211] p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between">
+            <div className="bg-white dark:bg-[#201211] p-6 rounded-2xl border border-[#ebbbb4]/40 dark:border-white/10 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center mb-4">
                   <span className="material-symbols-outlined text-2xl">ac_unit</span>
@@ -548,13 +548,13 @@ export const PublicLanding: React.FC = () => {
                   Whole-body nitrogen cryo pods and chilled contrast plunge pools to accelerate metabolic recovery, blunt soreness, and trigger endorphin release.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] font-bold text-blue-600">
+              <div className="mt-4 pt-3 border-t border-[#ebbbb4]/20 dark:border-white/5 flex items-center justify-between text-[11px] font-bold text-blue-600">
                 <span>Clinical Cold Protocol</span>
                 <span>Session Included</span>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-[#201211] p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between">
+            <div className="bg-white dark:bg-[#201211] p-6 rounded-2xl border border-[#ebbbb4]/40 dark:border-white/10 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center mb-4">
                   <span className="material-symbols-outlined text-2xl">fitness_center</span>
@@ -566,7 +566,7 @@ export const PublicLanding: React.FC = () => {
                   Competition-grade vibration-dampened oak platforms, calibrated steel discs, stainless bearing barbells, and digital barbell velocity tracking.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] font-bold text-amber-600">
+              <div className="mt-4 pt-3 border-t border-[#ebbbb4]/20 dark:border-white/5 flex items-center justify-between text-[11px] font-bold text-amber-600">
                 <span>IPF / IWF Standards</span>
                 <span>12 Platforms</span>
               </div>
@@ -590,7 +590,7 @@ export const PublicLanding: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-[#1f1312] rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between">
+          <div className="bg-white dark:bg-[#1f1312] rounded-2xl border border-[#ebbbb4]/40 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between">
             <div className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
@@ -601,11 +601,11 @@ export const PublicLanding: React.FC = () => {
               <h3 className="font-headline font-bold text-lg text-[#2b1613] dark:text-white">
                 Downtown Performance HQ
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-[#603e39] dark:text-slate-400 mt-1">
                 Plot 42, Financial District, Grand Central Blvd. Optical turnstile node #01 to #06.
               </p>
             </div>
-            <div className="p-4 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 text-xs flex items-center justify-between text-slate-600 dark:text-slate-400">
+            <div className="p-4 bg-[#fff8f6] dark:bg-white/5 border-t border-[#ebbbb4]/20 dark:border-white/5 text-xs flex items-center justify-between text-slate-600 dark:text-slate-400">
               <span className="flex items-center gap-1 font-semibold">
                 <span className="material-symbols-outlined text-sm text-[#bc0100]">pin_drop</span>
                 Downtown Hub
@@ -614,7 +614,7 @@ export const PublicLanding: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#1f1312] rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between">
+          <div className="bg-white dark:bg-[#1f1312] rounded-2xl border border-[#ebbbb4]/40 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between">
             <div className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-[10px] font-bold">
@@ -625,11 +625,11 @@ export const PublicLanding: React.FC = () => {
               <h3 className="font-headline font-bold text-lg text-[#2b1613] dark:text-white">
                 Midtown Kinetic Lab
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-[#603e39] dark:text-slate-400 mt-1">
                 Level 02, Tech Hub 07, Sector 18. Equipped with Hyrox sprint track and cold hydrotherapy.
               </p>
             </div>
-            <div className="p-4 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 text-xs flex items-center justify-between text-slate-600 dark:text-slate-400">
+            <div className="p-4 bg-[#fff8f6] dark:bg-white/5 border-t border-[#ebbbb4]/20 dark:border-white/5 text-xs flex items-center justify-between text-slate-600 dark:text-slate-400">
               <span className="flex items-center gap-1 font-semibold">
                 <span className="material-symbols-outlined text-sm text-[#bc0100]">pin_drop</span>
                 Midtown Lab
@@ -638,7 +638,7 @@ export const PublicLanding: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#1f1312] rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between">
+          <div className="bg-white dark:bg-[#1f1312] rounded-2xl border border-[#ebbbb4]/40 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between">
             <div className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-[10px] font-bold">
@@ -649,11 +649,11 @@ export const PublicLanding: React.FC = () => {
               <h3 className="font-headline font-bold text-lg text-[#2b1613] dark:text-white">
                 Cyber City Combat Suite
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-[#603e39] dark:text-slate-400 mt-1">
                 Tower B, Global Corporate Arcade. Boxing ring, heavy bag cage, and infrared recovery sauna.
               </p>
             </div>
-            <div className="p-4 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 text-xs flex items-center justify-between text-slate-600 dark:text-slate-400">
+            <div className="p-4 bg-[#fff8f6] dark:bg-white/5 border-t border-[#ebbbb4]/20 dark:border-white/5 text-xs flex items-center justify-between text-slate-600 dark:text-slate-400">
               <span className="flex items-center gap-1 font-semibold">
                 <span className="material-symbols-outlined text-sm text-[#bc0100]">pin_drop</span>
                 Cyber City Hub
@@ -665,7 +665,7 @@ export const PublicLanding: React.FC = () => {
       </section>
 
       {/* BRAND FOOTER */}
-      <footer className="bg-slate-900 text-white border-t border-slate-800 py-16 px-4 lg:px-8 mt-12">
+      <footer className="bg-[#fff8f6] dark:bg-[#100807] text-[#2b1613] dark:text-[#fceae7] border-t border-[#ebbbb4]/40 dark:border-white/10 py-16 px-4 lg:px-8 mt-12 transition-colors">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4 md:col-span-2">
@@ -674,52 +674,52 @@ export const PublicLanding: React.FC = () => {
                   <span className="material-symbols-outlined text-xl">fitness_center</span>
                 </div>
                 <div>
-                  <div className="font-headline font-extrabold text-lg text-white tracking-tight leading-none">
+                  <div className="font-headline font-extrabold text-lg text-[#2b1613] dark:text-white tracking-tight leading-none">
                     <span>WARRIOR</span>
                     <span className="text-[#bc0100] italic ml-1">FITNESS</span>
                   </div>
-                  <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-0.5 font-mono">
+                  <div className="text-[10px] uppercase font-bold tracking-widest text-[#603e39] dark:text-[#bca4a0] mt-0.5 font-mono">
                     High Performance Athletic Systems
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-slate-400 max-w-md leading-relaxed">
+              <p className="text-xs text-[#603e39] dark:text-[#bca4a0] max-w-md leading-relaxed">
                 Elite conditioning ecosystem integrating calibrated Olympic lifting, metabolic pacing, cryotherapy restoration, and sub-50ms optical turnstile gate automation.
               </p>
               <div className="flex items-center gap-3 pt-1">
-                <span className="px-2.5 py-1 rounded bg-slate-800 text-[10px] font-mono text-emerald-400 font-bold">
+                <span className="px-2.5 py-1 rounded bg-emerald-50 dark:bg-emerald-950/40 text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-200 dark:border-emerald-800/40">
                   SYSTEM ONLINE • ALL HUBS LIVE
                 </span>
               </div>
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-300 font-mono">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-[#2b1613] dark:text-white font-mono">
                 Explore Brand
               </h4>
-              <ul className="space-y-2 text-xs text-slate-400">
+              <ul className="space-y-2 text-xs text-[#603e39] dark:text-[#bca4a0]">
                 <li>
-                  <button onClick={() => { const el = document.getElementById('programs'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-white transition-colors cursor-pointer">
+                  <button onClick={() => { const el = document.getElementById('programs'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-[#bc0100] dark:hover:text-white transition-colors cursor-pointer">
                     Training Programs
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { const el = document.getElementById('pricing-tiers'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-white transition-colors cursor-pointer">
+                  <button onClick={() => { const el = document.getElementById('pricing-tiers'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-[#bc0100] dark:hover:text-white transition-colors cursor-pointer">
                     Membership Passes
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { const el = document.getElementById('coaches'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-white transition-colors cursor-pointer">
+                  <button onClick={() => { const el = document.getElementById('coaches'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-[#bc0100] dark:hover:text-white transition-colors cursor-pointer">
                     Athletic Coaches
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { const el = document.getElementById('telemetry'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-white transition-colors cursor-pointer">
+                  <button onClick={() => { const el = document.getElementById('telemetry'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-[#bc0100] dark:hover:text-white transition-colors cursor-pointer">
                     Recovery Lab & Facilities
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { const el = document.getElementById('locations'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-white transition-colors cursor-pointer">
+                  <button onClick={() => { const el = document.getElementById('locations'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-[#bc0100] dark:hover:text-white transition-colors cursor-pointer">
                     Regional Hubs
                   </button>
                 </li>
@@ -727,16 +727,16 @@ export const PublicLanding: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-300 font-mono">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-[#2b1613] dark:text-white font-mono">
                 Portal Sign In
               </h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-[#603e39] dark:text-[#bca4a0] leading-relaxed">
                 Authorized staff operators, executive owners, and enrolled members can access their dedicated portals with account credentials.
               </p>
               <button
                 type="button"
                 onClick={() => setActiveView('login')}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-[#bc0100] text-white text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-700 hover:border-[#bc0100] cursor-pointer shadow-sm"
+                className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-[#1f1312] hover:bg-[#bc0100] dark:hover:bg-[#bc0100] text-[#2b1613] hover:text-white dark:text-white text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[#ebbbb4]/60 dark:border-white/10 hover:border-[#bc0100] cursor-pointer shadow-sm"
               >
                 <span className="material-symbols-outlined text-sm">lock</span>
                 <span>Member / Staff Sign In</span>
@@ -744,8 +744,12 @@ export const PublicLanding: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="pt-8 border-t border-[#ebbbb4]/40 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#603e39] dark:text-[#bca4a0]">
             <p>© 2026 Warrior Fitness Systems Pvt. Ltd. All rights reserved.</p>
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#ffe9e6] dark:bg-white/5 border border-[#ebbbb4]/60 dark:border-white/10 shadow-xs text-[#2b1613] dark:text-white">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Created by <strong className="text-[#bc0100] dark:text-[#ff6b5d] font-bold">Swarit Mathur</strong></span>
+            </div>
             <div className="flex items-center gap-6">
               <span>ISO 9001:2015 Certified Facilities</span>
               <span>256-bit SSL Security</span>
@@ -1116,7 +1120,8 @@ export const PublicLanding: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setReceiptData(null);
-                    setActiveView('login');
+                    switchRole('CUSTOMER');
+                    setActiveView('customer');
                   }}
                   className="w-full py-2.5 bg-[#fff0ee] dark:bg-white/10 text-[#bc0100] dark:text-red-400 font-bold text-xs rounded-xl hover:bg-red-100 dark:hover:bg-white/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >

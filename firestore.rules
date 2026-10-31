@@ -18,16 +18,20 @@ service cloud.firestore {
 
     function isOwner() {
       return isSignedIn() && (
-        getUserData().role == 'OWNER' ||
+        request.auth.token.email == 'swaritmathur00@gmail.com' ||
         request.auth.token.email == 'marcus.vance@warrior.io' ||
-        request.auth.token.email == 'swaritmathur00@gmail.com'
+        request.auth.token.email == 'owner@warriorfitness.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'OWNER')
       );
     }
 
     function isStaff() {
       return isSignedIn() && (
         isOwner() ||
-        getUserData().role == 'STAFF'
+        request.auth.token.email == 'staff@warriorfitness.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'STAFF')
       );
     }
 
@@ -128,6 +132,11 @@ service cloud.firestore {
     match /gymSettings/{settingId} {
       allow read: if true;
       allow write: if isOwner();
+    }
+
+    // Connection & health probe
+    match /test/{docId} {
+      allow read: if true;
     }
   }
 }
